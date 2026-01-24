@@ -1,12 +1,12 @@
 # ML/AI Development Plan
 
 **Developer**: ML/AI Team Member  
-**Component**: Speech Recognition, Recommendations, Sensor Processing  
-**Technology Stack**: Python, Flask/FastAPI, PyTorch, Whisper
+**Component**: Speech Recognition, Pronunciation Evaluation, Recommendations, Engagement Detection  
+**Technology Stack**: Python, FastAPI, PyTorch, Whisper, Librosa, Scikit-learn, Presage SDK
 
 ## Overview
 
-Build ML services for speech recognition, story recommendations, and optional sensor-based adaptation. The service will run as a separate microservice that the backend calls.
+Build ML services for speech recognition, pronunciation evaluation, personalized story recommendations, and optional engagement detection. The service integrates with Whisper for ASR, implements pronunciation scoring algorithms, provides content-based recommendations, and optionally processes Presage sensor data. The service runs as a separate microservice that the backend calls.
 
 ## Prerequisites
 
@@ -50,6 +50,13 @@ pip install python-dotenv pydantic
 
 # Optional: Sensor/Image processing
 pip install opencv-python numpy
+
+# Audio analysis for pronunciation
+pip install praat-parselmouth  # Optional, for advanced phoneme analysis
+pip install scipy  # For signal processing
+
+# Presage SDK (if available from MLH)
+# pip install presage-sdk  # Check MLH docs
 ```
 
 #### 1.3 Project Structure
@@ -99,7 +106,7 @@ OPENAI_API_KEY=your_key_here
 LOG_LEVEL=INFO
 ```
 
-### Phase 2: Speech Recognition Service (2-3 hours)
+### Phase 2: Speech Recognition & Transcription (2-3 hours)
 
 #### 2.1 Audio Utilities
 **File**: `app/utils/audio_utils.py`
@@ -344,7 +351,256 @@ class SpeechService:
         return result
 ```
 
-### Phase 3: Recommendation Engine (2-3 hours)
+### Phase 3: Pronunciation Evaluation Service (3-4 hours)
+
+#### 3.1 Pronunciation Scoring Service
+**File**: `app/services/pronunciation_service.py`
+```python
+import librosa
+import numpy as np
+from scipy.spatial.distance import euclidean
+from typing import Dict, Optional, Tuple
+import os
+
+class PronunciationService:
+    def __init__(self):
+        self.reference_audio_cache = {}  # Cache reference audio features
+    
+    def extract_audio_features(self, audio_path: str) -> Dict[str, np.ndarray]:
+        """
+        Extract acoustic features from audio for pronunciation comparison.
+        
+        Features extracted:
+        - MFCCs (Mel-frequency cepstral coefficients)
+        - Pitch (F0)
+        - Formants (F1, F2)
+        - Duration
+        - Energy
+        
+        Args:
+            audio_path: Path to audio file
+        
+        Returns:
+            Dictionary of feature arrays
+        """
+        try:
+            audio, sr = librosa.load(audio_path, sr=16000, mono=True)
+            
+            # MFCCs (13 coefficients)
+            mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13)
+            
+            # Pitch (F0) using pyin
+            f0, voiced_flag, voiced_probs = librosa.pyin(
+                audio, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7')
+            )
+            
+            # Energy
+            energy = librosa.feature.rms(y=audio)
+            
+            # Duration
+            duration = len(audio) / sr
+            
+            return {
+                "mfccs": mfccs,
+                "pitch": f0,
+                "voiced_flag": voiced_flag,
+                "energy": energy,
+                "duration": duration,
+                "sample_rate": sr
+            }
+        except Exception as e:
+            raise ValueError(f"Feature extraction failed: {str(e)}")
+    
+    def compare_pronunciation(
+        self,
+        user_audio_path: str,
+        reference_audio_path: str,
+        expected_text: str
+    ) -> Dict[str, any]:
+        """
+        Compare user pronunciation to reference and provide feedback.
+        
+        Args:
+            user_audio_path: Path to user's audio recording
+            reference_audio_path: Path to reference (correct) audio
+            expected_text: Expected text transcription
+        
+        Returns:
+            Dictionary with score, feedback, and detailed analysis
+        """
+        try:
+            # Extract features from both audios
+            user_features = self.extract_audio_features(user_audio_path)
+            ref_features = self.extract_audio_features(reference_audio_path)
+            
+            # Calculate similarity scores
+            mfcc_similarity = self._compare_mfccs(
+                user_features["mfccs"],
+                ref_features["mfccs"]
+            )
+            
+            pitch_similarity = self._compare_pitch(
+                user_features["pitch"],
+                ref_features["pitch"]
+            )
+            
+            duration_similarity = self._compare_duration(
+                user_features["duration"],
+                ref_features["duration"]
+            )
+            
+            # Weighted overall score
+            overall_score = (
+                mfcc_similarity * 0.5 +
+                pitch_similarity * 0.3 +
+                duration_similarity * 0.2
+            )
+            
+            # Generate feedback
+            feedback = self._generate_feedback(
+                user_features,
+                ref_features,
+                overall_score,
+                expected_text
+            )
+            
+            return {
+                "score": round(overall_score * 100, 1),  # 0-100 scale
+                "confidence": 0.8,  # Confidence in the score
+                "feedback": feedback,
+                "details": {
+                    "mfcc_similarity": round(mfcc_similarity * 100, 1),
+                    "pitch_similarity": round(pitch_similarity * 100, 1),
+                    "duration_similarity": round(duration_similarity * 100, 1)
+                }
+            }
+        except Exception as e:
+            return {
+                "score": 0,
+                "confidence": 0,
+                "error": str(e),
+                "feedback": "Unable to analyze pronunciation. Please try again."
+            }
+    
+    def _compare_mfccs(self, user_mfccs: np.ndarray, ref_mfccs: np.ndarray) -> float:
+        """Compare MFCC features using DTW or mean similarity"""
+        # Simple approach: compare mean MFCCs
+        user_mean = np.mean(user_mfccs, axis=1)
+        ref_mean = np.mean(ref_mfccs, axis=1)
+        
+        # Cosine similarity
+        dot_product = np.dot(user_mean, ref_mean)
+        norm_user = np.linalg.norm(user_mean)
+        norm_ref = np.linalg.norm(ref_mean)
+        
+        if norm_user == 0 or norm_ref == 0:
+            return 0.0
+        
+        similarity = dot_product / (norm_user * norm_ref)
+        return max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+    
+    def _compare_pitch(self, user_pitch: np.ndarray, ref_pitch: np.ndarray) -> float:
+        """Compare pitch contours"""
+        # Remove NaN values
+        user_pitch_clean = user_pitch[~np.isnan(user_pitch)]
+        ref_pitch_clean = ref_pitch[~np.isnan(ref_pitch)]
+        
+        if len(user_pitch_clean) == 0 or len(ref_pitch_clean) == 0:
+            return 0.5  # Neutral if no pitch detected
+        
+        # Compare mean pitch
+        user_mean = np.mean(user_pitch_clean)
+        ref_mean = np.mean(ref_pitch_clean)
+        
+        # Normalize difference
+        pitch_diff = abs(user_mean - ref_mean) / max(ref_mean, 1.0)
+        similarity = 1.0 - min(1.0, pitch_diff)
+        
+        return max(0.0, similarity)
+    
+    def _compare_duration(self, user_duration: float, ref_duration: float) -> float:
+        """Compare audio duration"""
+        if ref_duration == 0:
+            return 0.0
+        
+        duration_ratio = user_duration / ref_duration
+        # Penalize if too different (optimal is 1.0)
+        similarity = 1.0 - abs(1.0 - duration_ratio) * 0.5
+        return max(0.0, min(1.0, similarity))
+    
+    def _generate_feedback(
+        self,
+        user_features: Dict,
+        ref_features: Dict,
+        score: float,
+        expected_text: str
+    ) -> str:
+        """Generate actionable feedback for the user"""
+        if score >= 0.8:
+            return f"Excellent pronunciation of '{expected_text}'! Keep it up!"
+        elif score >= 0.6:
+            duration_diff = abs(user_features["duration"] - ref_features["duration"])
+            if duration_diff > 0.2:
+                return f"Good attempt! Try holding the sound a bit {'longer' if user_features['duration'] < ref_features['duration'] else 'shorter'}."
+            else:
+                return f"Good pronunciation! With a bit more practice, you'll perfect '{expected_text}'."
+        elif score >= 0.4:
+            return f"Keep practicing '{expected_text}'. Focus on the rhythm and tone. Listen to the reference audio again."
+        else:
+            return f"Don't give up! '{expected_text}' is challenging. Try breaking it into syllables and practice each part slowly."
+```
+
+#### 3.2 Pronunciation Endpoint
+**File**: `app/main.py` (add to existing)
+```python
+from app.services.pronunciation_service import PronunciationService
+
+pronunciation_service = PronunciationService()
+
+@app.post("/pronunciation/evaluate")
+async def evaluate_pronunciation(
+    file: UploadFile = File(...),
+    reference_audio_url: str = Form(...),
+    expected_text: str = Form(...)
+):
+    """
+    Evaluate user pronunciation against reference audio.
+    
+    Expected format: WAV, 16kHz, mono, 16-bit PCM
+    """
+    try:
+        # Save user audio to temp file
+        import tempfile
+        user_audio_bytes = await file.read()
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_user:
+            tmp_user.write(user_audio_bytes)
+            tmp_user_path = tmp_user.name
+        
+        # Download reference audio (or use cached)
+        # For now, assume reference is provided as URL
+        # In production, cache reference audio locally
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_ref:
+            # Download reference audio here
+            # For demo, use a placeholder
+            tmp_ref_path = tmp_ref.name
+        
+        try:
+            result = pronunciation_service.compare_pronunciation(
+                user_audio_path=tmp_user_path,
+                reference_audio_path=tmp_ref_path,
+                expected_text=expected_text
+            )
+            return result
+        finally:
+            os.unlink(tmp_user_path)
+            if os.path.exists(tmp_ref_path):
+                os.unlink(tmp_ref_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pronunciation evaluation failed: {str(e)}")
+```
+
+### Phase 4: Recommendation Engine (2-3 hours)
 
 #### 3.1 Recommendation Service
 **File**: `app/services/recommendation_service.py`
@@ -540,7 +796,7 @@ class RecommendationService:
         return False
 ```
 
-### Phase 4: FastAPI Application (1-2 hours)
+### Phase 5: FastAPI Application (1-2 hours)
 
 #### 4.1 Main Application
 **File**: `app/main.py`
@@ -666,7 +922,7 @@ python-dotenv==1.0.0
 pydantic==2.5.0
 ```
 
-### Phase 5: Testing (1 hour)
+### Phase 6: Testing (1 hour)
 
 #### 5.1 Test Script
 **File**: `test_ml_service.py`
@@ -704,7 +960,7 @@ if __name__ == "__main__":
     test_recommendations()
 ```
 
-### Phase 6: Optional - Sensor Integration (2-3 hours)
+### Phase 7: Optional - Presage Integration (2-3 hours)
 
 #### 6.1 Sensor Service (Simplified)
 **File**: `app/services/sensor_service.py`
@@ -804,14 +1060,18 @@ async def process_sensor_data(request: SensorDataRequest):
 - [ ] Audio format validation works
 - [ ] Service integrates with backend
 
-## Deliverables
+## Updated Deliverables
 
 1. ✅ Working FastAPI service
 2. ✅ Speech recognition with Whisper
-3. ✅ Story recommendation engine
-4. ✅ API endpoints matching spec
-5. ✅ Error handling and validation
-6. ✅ Optional sensor processing
+3. ✅ **Pronunciation evaluation with detailed feedback**
+4. ✅ Story recommendation engine with personalization
+5. ✅ API endpoints matching spec
+6. ✅ Error handling and validation
+7. ✅ Optional Presage sensor processing
+8. ✅ Audio feature extraction (MFCCs, pitch, formants)
+9. ✅ Pronunciation scoring algorithm
+10. ✅ Integration with backend for recommendations
 
 ## Performance Notes
 
@@ -824,12 +1084,31 @@ async def process_sensor_data(request: SensorDataRequest):
 
 - **For Hackathon**: Use `base` model on CPU (acceptable speed) or `tiny` for fastest results
 
+## Updated Testing Checklist
+
+- [ ] ML service starts successfully
+- [ ] Health endpoint returns OK
+- [ ] Speech transcription works with test audio
+- [ ] **Pronunciation evaluation provides accurate scores**
+- [ ] **Pronunciation feedback is actionable and helpful**
+- [ ] Recommendations endpoint returns results
+- [ ] Error handling works for invalid inputs
+- [ ] Model loads correctly (Whisper)
+- [ ] Audio format validation works
+- [ ] Service integrates with backend
+- [ ] **Pronunciation service compares audio correctly**
+- [ ] **Presage integration works (if implemented)**
+
 ## Next Steps
 
 1. Fine-tune Whisper on Indigenous language data (if available)
-2. Improve recommendation algorithm with more features
-3. Add caching for frequent requests
-4. Implement batch processing for multiple transcriptions
-5. Add model versioning and A/B testing
-6. Optimize model loading (lazy loading, model caching)
+2. **Improve pronunciation scoring with phoneme-level alignment**
+3. **Add more sophisticated audio analysis (formant tracking, prosody)**
+4. Improve recommendation algorithm with more features
+5. Add caching for frequent requests
+6. Implement batch processing for multiple transcriptions
+7. Add model versioning and A/B testing
+8. Optimize model loading (lazy loading, model caching)
+9. **Collect pronunciation data to improve scoring accuracy**
+10. **Implement adaptive difficulty based on pronunciation scores**
 

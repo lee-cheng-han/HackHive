@@ -1,12 +1,12 @@
 # Frontend Development Plan
 
 **Developer**: Frontend Team Member  
-**Component**: Voice-First Web Interface  
-**Technology Stack**: React, Web Speech API, Material-UI/Chakra UI
+**Component**: TurtleTalk Web Application - Four-Section Platform  
+**Technology Stack**: React, TypeScript, Material-UI, Web Speech API, Axios, Howler.js
 
 ## Overview
 
-Build a responsive, voice-first web application with a chat-style interface for interactive storytelling. The UI should be engaging, accessible, and support both voice and text interactions.
+Build a responsive, voice-first web application with four main sections: **Dashboard**, **Courses**, **Community**, and **Settings**. The UI integrates multiple AI services (Google Gemini for conversational tutor, ElevenLabs for TTS, Presage for engagement detection) and provides interactive language learning features including lessons, pronunciation practice, community stories, and progress tracking. The interface must be accessible, support offline mode, and work seamlessly across devices.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ npm install
 ```bash
 # UI Components
 npm install @mui/material @emotion/react @emotion/styled
-npm install @chakra-ui/react @chakra-ui/icons
+npm install @mui/icons-material
 
 # State Management
 npm install @reduxjs/toolkit react-redux
@@ -40,14 +40,19 @@ npm install @reduxjs/toolkit react-redux
 # HTTP Client
 npm install axios
 
-# Routing (if needed)
+# Routing
 npm install react-router-dom
 
 # Audio/Media
 npm install howler  # For audio playback
+npm install @types/howler  # TypeScript types
 
 # Utilities
 npm install uuid  # For generating IDs
+npm install @types/uuid
+
+# Service Worker (for offline mode)
+npm install workbox-webpack-plugin  # Optional for PWA
 ```
 
 #### 1.3 Project Structure
@@ -56,10 +61,34 @@ Create this folder structure:
 frontend/
 ├── src/
 │   ├── components/
+│   │   ├── Dashboard/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── StatsCard.tsx
+│   │   │   ├── ProgressChart.tsx
+│   │   │   └── RecommendationsList.tsx
+│   │   ├── Courses/
+│   │   │   ├── CourseModules.tsx
+│   │   │   ├── CourseCard.tsx
+│   │   │   ├── LessonView.tsx
+│   │   │   └── QuizComponent.tsx
+│   │   ├── Community/
+│   │   │   ├── CommunityHub.tsx
+│   │   │   ├── StoryUpload.tsx
+│   │   │   ├── StoryList.tsx
+│   │   │   └── DiscussionForum.tsx
+│   │   ├── Settings/
+│   │   │   ├── Settings.tsx
+│   │   │   ├── LanguagePreferences.tsx
+│   │   │   ├── AccessibilitySettings.tsx
+│   │   │   └── AccountSettings.tsx
 │   │   ├── Chat/
-│   │   │   ├── ChatInterface.tsx
+│   │   │   ├── ChatInterface.tsx      # AI Tutor Chat
 │   │   │   ├── MessageBubble.tsx
 │   │   │   └── VoiceInput.tsx
+│   │   ├── Pronunciation/
+│   │   │   ├── PronunciationCoach.tsx
+│   │   │   ├── WordPractice.tsx
+│   │   │   └── FeedbackDisplay.tsx
 │   │   ├── Story/
 │   │   │   ├── StoryScene.tsx
 │   │   │   ├── StoryChoices.tsx
@@ -67,31 +96,42 @@ frontend/
 │   │   ├── Audio/
 │   │   │   ├── AudioPlayer.tsx
 │   │   │   └── VoiceRecorder.tsx
-│   │   └── Accessibility/
-│   │       ├── FontSizeControl.tsx
-│   │       ├── HighContrastToggle.tsx
-│   │       └── SubtitleDisplay.tsx
+│   │   ├── Accessibility/
+│   │   │   ├── FontSizeControl.tsx
+│   │   │   ├── HighContrastToggle.tsx
+│   │   │   └── SubtitleDisplay.tsx
+│   │   └── Navigation/
+│   │       └── MainNavigation.tsx
 │   ├── services/
-│   │   ├── api.ts          # API client
-│   │   ├── speech.ts       # Web Speech API wrapper
-│   │   └── audio.ts        # Audio utilities
+│   │   ├── api.ts              # Backend API client
+│   │   ├── gemini.ts           # Google Gemini API client
+│   │   ├── elevenlabs.ts       # ElevenLabs TTS API client
+│   │   ├── presage.ts          # Presage SDK integration
+│   │   ├── speech.ts           # Web Speech API wrapper
+│   │   └── audio.ts            # Audio utilities
 │   ├── hooks/
 │   │   ├── useVoiceInput.ts
 │   │   ├── useStory.ts
-│   │   └── useAudio.ts
-│   ├── store/              # Redux store (if using)
+│   │   ├── useAudio.ts
+│   │   ├── usePresage.ts       # Presage engagement detection
+│   │   └── useOffline.ts        # Offline mode management
+│   ├── store/                  # Redux store (if using)
 │   │   ├── slices/
 │   │   │   ├── storySlice.ts
-│   │   │   └── userSlice.ts
+│   │   │   ├── userSlice.ts
+│   │   │   └── progressSlice.ts
 │   ├── types/
 │   │   ├── story.ts
 │   │   ├── user.ts
+│   │   ├── course.ts
 │   │   └── api.ts
 │   ├── utils/
 │   │   ├── constants.ts
-│   │   └── helpers.ts
+│   │   ├── helpers.ts
+│   │   └── offline.ts           # Offline storage utilities
 │   └── App.tsx
 ├── public/
+│   └── manifest.json            # PWA manifest for offline mode
 └── package.json
 ```
 
@@ -675,6 +715,268 @@ REACT_APP_API_URL=http://localhost:3001/api
 5. Polish animations and transitions
 6. Test on multiple browsers and devices
 
+### Phase 6: Four-Section Architecture (3-4 hours)
+
+#### 6.1 Main Navigation Component
+**File**: `src/components/Navigation/MainNavigation.tsx`
+- Create tab-based navigation with 4 main sections: Dashboard, Courses, Community, Settings
+- Use Material-UI BottomNavigation or AppBar with tabs
+- Implement routing between sections
+- Add active state indicators
+
+#### 6.2 Dashboard Section
+**File**: `src/components/Dashboard/Dashboard.tsx`
+- Display user stats (words learned, stories completed, streak, level)
+- Show recommended stories/lessons from ML service
+- Progress visualization (charts/graphs)
+- Recent activity feed
+- Badges/achievements display
+- Quick access to continue learning
+
+#### 6.3 Courses Section
+**File**: `src/components/Courses/CourseModules.tsx`
+- List of language course modules (Cree, Ojibwe, Inuktitut, Mohawk, etc.)
+- Filter by language and difficulty level
+- Course cards with progress indicators
+- Lesson view with interactive content
+- Quiz components for assessment
+- Progress tracking per course
+
+#### 6.4 Community Section
+**File**: `src/components/Community/CommunityHub.tsx`
+- Story upload form for community contributions
+- Browse community-contributed stories
+- Discussion forum/threads
+- Story ratings and comments
+- Filter by language, theme, author
+- Moderation indicators (approved/pending)
+
+#### 6.5 Settings Section
+**File**: `src/components/Settings/Settings.tsx`
+- Language preferences (select Indigenous language and dialect)
+- Accessibility settings (font size, high contrast, subtitles)
+- Account management
+- Privacy controls
+- Offline mode settings (download content)
+- Notification preferences
+
+### Phase 7: AI Tutor Integration (2-3 hours)
+
+#### 7.1 Google Gemini API Client
+**File**: `src/services/gemini.ts`
+```typescript
+import axios from 'axios';
+
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+
+export const geminiService = {
+  async chatWithTutor(
+    message: string,
+    conversationHistory: Array<{role: string, content: string}>,
+    language: string,
+    userLevel: string
+  ): Promise<string> {
+    const systemPrompt = `You are a friendly ${language} language tutor. 
+    Help users learn by:
+    - Responding in ${language} when appropriate
+    - Providing translations when needed
+    - Gently correcting mistakes
+    - Adapting to ${userLevel} level
+    - Including cultural context when relevant`;
+    
+    const response = await axios.post(
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      {
+        contents: [
+          ...conversationHistory,
+          { role: 'user', parts: [{ text: message }] }
+        ],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+      }
+    );
+    
+    return response.data.candidates[0].content.parts[0].text;
+  }
+};
+```
+
+#### 7.2 AI Tutor Chat Interface
+**File**: `src/components/Chat/ChatInterface.tsx`
+- Integrate Gemini API for conversational responses
+- Support both text and voice input
+- Display conversation history
+- Show typing indicators
+- Handle errors gracefully (fallback to mock responses if API fails)
+- Include "Explain" button to switch to English when needed
+
+### Phase 8: ElevenLabs TTS Integration (1-2 hours)
+
+#### 8.1 ElevenLabs API Client
+**File**: `src/services/elevenlabs.ts`
+```typescript
+import axios from 'axios';
+
+const ELEVENLABS_API_KEY = process.env.REACT_APP_ELEVENLABS_API_KEY;
+const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
+
+export const elevenlabsService = {
+  async generateSpeech(
+    text: string,
+    voiceId: string = 'default',
+    language: string = 'en'
+  ): Promise<Blob> {
+    const response = await axios.post(
+      `${ELEVENLABS_API_URL}/${voiceId}`,
+      {
+        text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75
+        }
+      },
+      {
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'blob'
+      }
+    );
+    
+    return response.data;
+  },
+  
+  async playAudio(audioBlob: Blob): Promise<void> {
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    await audio.play();
+    URL.revokeObjectURL(audioUrl);
+  }
+};
+```
+
+#### 8.2 TTS Integration Points
+- Integrate ElevenLabs in:
+  - Story narration (when no recorded audio available)
+  - AI tutor voice responses
+  - Pronunciation reference audio
+  - Lesson word pronunciations
+- Add play/pause controls
+- Cache generated audio for offline use
+
+### Phase 9: Pronunciation Coach (2-3 hours)
+
+#### 9.1 Pronunciation Coach Component
+**File**: `src/components/Pronunciation/PronunciationCoach.tsx`
+- Word/phrase selection interface
+- Record button for user practice
+- Reference audio playback (from ElevenLabs or recordings)
+- Display pronunciation score and feedback
+- Visual feedback (waveform comparison, pitch visualization)
+- Retry functionality
+- Progress tracking per word
+
+#### 9.2 Feedback Display
+**File**: `src/components/Pronunciation/FeedbackDisplay.tsx`
+- Show pronunciation score (0-100 or stars)
+- Highlight specific phonemes/syllables that need work
+- Provide actionable tips ("Hold the 'aa' sound longer")
+- Visual indicators (green/yellow/red)
+- Achievement unlocks for improvement
+
+### Phase 10: Presage Integration (Optional, 2-3 hours)
+
+#### 10.1 Presage SDK Integration
+**File**: `src/services/presage.ts`
+```typescript
+// Import Presage SDK (check MLH docs for exact package name)
+// Example: import { Presage } from '@presage/sdk';
+
+export const presageService = {
+  async initializeCamera(): Promise<void> {
+    // Request camera permission
+    // Initialize Presage SDK
+  },
+  
+  async startMonitoring(
+    onMetrics: (metrics: {
+      heartRate: number;
+      breathingRate: number;
+      engagementScore: number;
+      emotion: string;
+    }) => void
+  ): Promise<void> {
+    // Start Presage monitoring
+    // Call onMetrics callback with real-time data
+  },
+  
+  async stopMonitoring(): Promise<void> {
+    // Stop Presage monitoring
+  }
+};
+```
+
+#### 10.2 Engagement Detection Hook
+**File**: `src/hooks/usePresage.ts`
+- Opt-in camera access
+- Monitor engagement metrics
+- Trigger UI adaptations based on engagement:
+  - Low engagement → offer hint or break
+  - High engagement → increase difficulty
+  - Frustration detected → show encouragement
+- Display engagement indicator (optional)
+
+### Phase 11: Offline Mode Support (2-3 hours)
+
+#### 11.1 Service Worker Setup
+**File**: `public/manifest.json`
+- PWA manifest for installable app
+- Offline caching strategy
+
+#### 11.2 Offline Storage Utilities
+**File**: `src/utils/offline.ts`
+- Cache lesson content using IndexedDB
+- Cache audio files for offline playback
+- Sync progress when online
+- Download content packages
+- Show offline indicator
+
+#### 11.3 Offline Mode Hook
+**File**: `src/hooks/useOffline.ts`
+- Detect online/offline status
+- Queue API requests when offline
+- Sync when connection restored
+- Show sync status to user
+
+## Updated Deliverables
+
+1. ✅ Four-section UI (Dashboard, Courses, Community, Settings)
+2. ✅ AI Conversational Tutor (Gemini integration)
+3. ✅ Pronunciation Coach with feedback
+4. ✅ Community story upload and browsing
+5. ✅ ElevenLabs TTS integration
+6. ✅ Presage engagement detection (optional)
+7. ✅ Offline mode support
+8. ✅ Progress tracking and recommendations
+9. ✅ Accessibility features
+10. ✅ Responsive design for mobile/tablet
+
+## Integration Checklist
+
+- [ ] Dashboard displays user stats and recommendations
+- [ ] Courses section shows language modules with progress
+- [ ] Community section allows story upload and browsing
+- [ ] Settings section has all preference controls
+- [ ] AI Tutor chat works with Gemini API
+- [ ] ElevenLabs TTS generates audio for stories and tutor
+- [ ] Pronunciation Coach provides feedback
+- [ ] Presage integration detects engagement (if implemented)
+- [ ] Offline mode caches content and syncs progress
+- [ ] All features work on mobile devices
+- [ ] Accessibility features (font size, contrast, subtitles) work
+
 ## Notes
 
 - Use mock data initially if backend is not ready
@@ -682,4 +984,10 @@ REACT_APP_API_URL=http://localhost:3001/api
 - Handle microphone permission requests gracefully
 - Ensure all text is readable with proper contrast
 - Test with screen readers for accessibility
+- **Gemini API**: Get API key from MLH or Google Cloud Console
+- **ElevenLabs API**: Get API key from MLH or ElevenLabs dashboard
+- **Presage SDK**: Check MLH docs for SDK installation and usage
+- **Offline Mode**: Use service workers and IndexedDB for caching
+- Handle API failures gracefully with fallbacks
+- Cache AI responses when possible to reduce API calls
 

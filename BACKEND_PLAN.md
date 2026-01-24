@@ -1,12 +1,12 @@
 # Backend Development Plan
 
 **Developer**: Backend Team Member  
-**Component**: Community Platform API  
-**Technology Stack**: Python/FastAPI, PostgreSQL, SQLAlchemy, JWT Auth
+**Component**: TurtleTalk Backend API  
+**Technology Stack**: Python/FastAPI, PostgreSQL/MongoDB, SQLAlchemy, JWT Auth, Google Gemini API, ElevenLabs API, Presage SDK
 
 ## Overview
 
-Build a RESTful API backend that handles user management, story content management, community features, and acts as a gateway to the ML service.
+Build a RESTful API backend that handles user management, story content management, community features, lesson progression, progress tracking, and integrates with multiple AI services (Google Gemini for conversational tutor, ElevenLabs for TTS, Presage for engagement detection). The backend acts as a gateway between the frontend and ML services, orchestrating AI calls and managing business logic.
 
 ## Prerequisites
 
@@ -49,6 +49,14 @@ pip install python-dotenv python-dateutil
 
 # CORS
 pip install python-multipart
+
+# AI/ML Service Integrations
+pip install google-generativeai  # Google Gemini API
+pip install elevenlabs  # ElevenLabs TTS API (or use httpx for REST)
+pip install httpx  # For external API calls
+
+# Optional: Presage SDK (check MLH docs for exact package)
+# pip install presage-sdk  # If available
 ```
 
 #### 1.3 Project Structure
@@ -116,6 +124,16 @@ JWT_EXPIRES_IN=3600  # seconds (1 hour)
 # ML Service
 ML_SERVICE_URL=http://localhost:5000
 
+# Google Gemini API
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# ElevenLabs API
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_VOICE_ID=default_voice_id
+
+# Presage SDK (Optional)
+PRESAGE_API_KEY=your_presage_api_key_here  # If available
+
 # Storage (S3/DigitalOcean Spaces)
 STORAGE_TYPE=local
 # STORAGE_TYPE=s3
@@ -123,6 +141,10 @@ STORAGE_TYPE=local
 # AWS_ACCESS_KEY_ID=your_key
 # AWS_SECRET_ACCESS_KEY=your_secret
 # AWS_REGION=us-east-1
+# Or use DigitalOcean Spaces:
+# DO_SPACES_ENDPOINT=nyc3.digitaloceanspaces.com
+# DO_SPACES_KEY=your_key
+# DO_SPACES_SECRET=your_secret
 
 # CORS
 CORS_ORIGINS=http://localhost:3000
@@ -999,12 +1021,514 @@ python run.py
 # Or: uvicorn app.main:app --reload --port 3001
 ```
 
+### Phase 8: Google Gemini Integration (2-3 hours)
+
+#### 8.1 Gemini Service Client
+**File**: `app/services/gemini_service.py`
+```python
+import google.generativeai as genai
+import os
+from typing import List, Dict, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+class GeminiService:
+    def __init__(self):
+        self.model = genai.GenerativeModel('gemini-pro')
+    
+    async def chat_with_tutor(
+        self,
+        user_message: str,
+        conversation_history: List[Dict[str, str]],
+        language: str,
+        user_level: str,
+        user_name: Optional[str] = None
+    ) -> Dict[str, any]:
+        """
+        Generate AI tutor response using Gemini.
+        
+        Args:
+            user_message: User's input (text or transcribed speech)
+            conversation_history: Previous messages in conversation
+            language: Target Indigenous language code
+            user_level: User's proficiency level (beginner/intermediate/advanced)
+            user_name: Optional user name for personalization
+        
+        Returns:
+            Dictionary with AI response, translation, and metadata
+        """
+        system_prompt = f"""You are a friendly {language} language tutor AI named TurtleTalk.
+        Your role is to help users learn {language} through conversation.
+        
+        Guidelines:
+        - Respond in {language} when appropriate, but provide English translations
+        - Adapt your responses to {user_level} level
+        - Gently correct mistakes without being harsh
+        - Include cultural context when relevant
+        - Keep responses concise and encouraging
+        - If asked for translation, provide both {language} and English
+        - Use simple language for beginners, more complex for advanced users
+        
+        User's name: {user_name or 'Learner'}
+        """
+        
+        # Build conversation context
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history[-5:]:  # Last 5 messages for context
+            messages.append(msg)
+        messages.append({"role": "user", "content": user_message})
+        
+        try:
+            response = self.model.generate_content(
+                "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+            )
+            
+            ai_response = response.text
+            
+            return {
+                "response": ai_response,
+                "language": language,
+                "confidence": 0.9,  # Gemini doesn't provide confidence, estimate
+                "suggestions": []  # Could extract learning suggestions
+            }
+        except Exception as e:
+            raise Exception(f"Gemini API error: {str(e)}")
+```
+
+#### 8.2 AI Tutor Routes
+**File**: `app/routes/ai_tutor.py`
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from typing import List, Optional
+from app.middleware.auth import get_current_user
+from app.models.user import User
+from app.services.gemini_service import GeminiService
+
+router = APIRouter(prefix="/ai-tutor", tags=["ai-tutor"])
+gemini_service = GeminiService()
+
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    conversation_history: List[ChatMessage] = []
+    language: str = "cr"
+    user_level: str = "beginner"
+
+@router.post("/chat")
+async def chat_with_tutor(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Chat with AI tutor powered by Gemini"""
+    try:
+        history = [{"role": m.role, "content": m.content} for m in request.conversation_history]
+        
+        result = await gemini_service.chat_with_tutor(
+            user_message=request.message,
+            conversation_history=history,
+            language=request.language,
+            user_level=request.user_level,
+            user_name=current_user.name
+        )
+        
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI tutor error: {str(e)}"
+        )
+```
+
+### Phase 9: ElevenLabs TTS Integration (1-2 hours)
+
+#### 9.1 ElevenLabs Service
+**File**: `app/services/elevenlabs_service.py`
+```python
+import httpx
+import os
+from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech"
+
+class ElevenLabsService:
+    async def generate_speech(
+        self,
+        text: str,
+        voice_id: str = None,
+        language: str = "en"
+    ) -> bytes:
+        """
+        Generate speech audio using ElevenLabs TTS.
+        
+        Args:
+            text: Text to convert to speech
+            voice_id: Voice ID (defaults to configured voice)
+            language: Language code
+        
+        Returns:
+            Audio bytes (MP3 format)
+        """
+        voice_id = voice_id or os.getenv("ELEVENLABS_VOICE_ID", "default")
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{ELEVENLABS_API_URL}/{voice_id}",
+                json={
+                    "text": text,
+                    "model_id": "eleven_multilingual_v2",
+                    "voice_settings": {
+                        "stability": 0.5,
+                        "similarity_boost": 0.75
+                    }
+                },
+                headers={
+                    "xi-api-key": ELEVENLABS_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                timeout=30.0
+            )
+            response.raise_for_status()
+            return response.content
+    
+    async def get_available_voices(self) -> List[Dict]:
+        """Get list of available voices"""
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.elevenlabs.io/v1/voices",
+                headers={"xi-api-key": ELEVENLABS_API_KEY}
+            )
+            response.raise_for_status()
+            return response.json().get("voices", [])
+```
+
+#### 9.2 TTS Routes
+**File**: `app/routes/tts.py`
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
+from pydantic import BaseModel
+from app.middleware.auth import get_current_user
+from app.models.user import User
+from app.services.elevenlabs_service import ElevenLabsService
+
+router = APIRouter(prefix="/tts", tags=["text-to-speech"])
+tts_service = ElevenLabsService()
+
+class TTSRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = None
+    language: str = "en"
+
+@router.post("/generate")
+async def generate_speech(
+    request: TTSRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Generate speech from text using ElevenLabs"""
+    try:
+        audio_bytes = await tts_service.generate_speech(
+            text=request.text,
+            voice_id=request.voice_id,
+            language=request.language
+        )
+        
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "attachment; filename=speech.mp3"}
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"TTS generation failed: {str(e)}"
+        )
+
+@router.get("/voices")
+async def list_voices(current_user: User = Depends(get_current_user)):
+    """List available ElevenLabs voices"""
+    try:
+        voices = await tts_service.get_available_voices()
+        return {"voices": voices}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch voices: {str(e)}"
+        )
+```
+
+### Phase 10: Presage Integration (Optional, 1-2 hours)
+
+#### 10.1 Presage Service
+**File**: `app/services/presage_service.py`
+```python
+import httpx
+import os
+from typing import Dict, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+PRESAGE_API_KEY = os.getenv("PRESAGE_API_KEY")
+PRESAGE_API_URL = os.getenv("PRESAGE_API_URL", "https://api.presage.ai/v1")
+
+class PresageService:
+    async def process_sensor_data(
+        self,
+        video_data: bytes,
+        user_id: str
+    ) -> Dict:
+        """
+        Process video/image data through Presage SDK to get engagement metrics.
+        
+        Args:
+            video_data: Video frame or image bytes
+            user_id: User identifier
+        
+        Returns:
+            Dictionary with engagement metrics (heart rate, focus, emotion, etc.)
+        """
+        # Check MLH docs for exact Presage API format
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{PRESAGE_API_URL}/analyze",
+                files={"video": video_data},
+                data={"user_id": user_id},
+                headers={"Authorization": f"Bearer {PRESAGE_API_KEY}"},
+                timeout=10.0
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def get_engagement_recommendation(
+        self,
+        metrics: Dict
+    ) -> Dict:
+        """
+        Analyze engagement metrics and recommend UI adaptations.
+        
+        Args:
+            metrics: Presage metrics (heart_rate, focus, emotion, etc.)
+        
+        Returns:
+            Recommendation for UI adaptation
+        """
+        heart_rate = metrics.get("heart_rate", 70)
+        focus = metrics.get("focus_score", 0.5)
+        emotion = metrics.get("emotion", "neutral")
+        
+        recommendation = {
+            "action": "maintain_pace",
+            "message": None,
+            "difficulty_adjustment": 0
+        }
+        
+        # Low engagement
+        if focus < 0.4:
+            recommendation = {
+                "action": "offer_break",
+                "message": "You seem distracted. Would you like to take a break?",
+                "difficulty_adjustment": -1
+            }
+        # High engagement
+        elif focus > 0.8:
+            recommendation = {
+                "action": "increase_difficulty",
+                "message": "Great focus! Let's try something more challenging.",
+                "difficulty_adjustment": 1
+            }
+        # Frustration detected
+        elif emotion in ["frustrated", "angry"] or heart_rate > 90:
+            recommendation = {
+                "action": "offer_hint",
+                "message": "This seems challenging. Would you like a hint?",
+                "difficulty_adjustment": -1
+            }
+        
+        return recommendation
+```
+
+#### 10.2 Presage Routes
+**File**: `app/routes/presage.py`
+```python
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
+from app.middleware.auth import get_current_user
+from app.models.user import User
+from app.services.presage_service import PresageService
+
+router = APIRouter(prefix="/presage", tags=["presage"])
+presage_service = PresageService()
+
+@router.post("/analyze")
+async def analyze_engagement(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Analyze video/image for engagement metrics"""
+    try:
+        video_data = await file.read()
+        metrics = await presage_service.process_sensor_data(
+            video_data=video_data,
+            user_id=str(current_user.user_id)
+        )
+        
+        recommendation = await presage_service.get_engagement_recommendation(metrics)
+        
+        return {
+            "metrics": metrics,
+            "recommendation": recommendation
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Presage analysis failed: {str(e)}"
+        )
+```
+
+### Phase 11: Progress Tracking & Recommendations (2-3 hours)
+
+#### 11.1 Progress Model
+**File**: `app/models/progress.py`
+```python
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, JSON
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import uuid
+from app.database import Base
+
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+    
+    progress_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    story_id = Column(UUID(as_uuid=True), ForeignKey("stories.story_id"), nullable=True)
+    lesson_id = Column(String, nullable=True)
+    current_scene = Column(String, nullable=True)
+    status = Column(String, nullable=False)  # "in_progress", "completed", "abandoned"
+    score = Column(Integer, nullable=True)
+    words_learned = Column(JSON, nullable=True, default=[])  # List of learned words
+    time_spent_seconds = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    user = relationship("User", backref="progress")
+    story = relationship("Story", backref="progress_records")
+```
+
+#### 11.2 Progress Routes
+**File**: `app/routes/progress.py`
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from typing import List, Optional
+from app.middleware.auth import get_current_user
+from app.models.user import User
+from app.models.progress import UserProgress
+from app.database import get_db
+from sqlalchemy.orm import Session
+
+router = APIRouter(prefix="/progress", tags=["progress"])
+
+class ProgressUpdate(BaseModel):
+    story_id: Optional[str] = None
+    lesson_id: Optional[str] = None
+    current_scene: Optional[str] = None
+    status: str
+    score: Optional[int] = None
+    words_learned: List[str] = []
+    time_spent_seconds: int = 0
+
+@router.post("/update")
+async def update_progress(
+    progress: ProgressUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user progress"""
+    # Implementation here
+    pass
+
+@router.get("/stats")
+async def get_user_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user statistics (words learned, stories completed, streak, etc.)"""
+    # Implementation here
+    pass
+
+@router.get("/recommendations")
+async def get_recommendations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get story/lesson recommendations from ML service"""
+    # Call ML service recommendation endpoint
+    pass
+```
+
+### Phase 12: Update Main App
+**File**: `app/main.py` (update existing)
+```python
+# ... existing imports ...
+from app.routes import auth, stories, voice, ai_tutor, tts, presage, progress
+
+# ... existing code ...
+
+# Include new routers
+app.include_router(ai_tutor.router, prefix="/api")
+app.include_router(tts.router, prefix="/api")
+app.include_router(presage.router, prefix="/api")
+app.include_router(progress.router, prefix="/api")
+```
+
+## Updated Deliverables
+
+1. ✅ RESTful API with all endpoints
+2. ✅ Google Gemini integration for AI tutor
+3. ✅ ElevenLabs TTS integration
+4. ✅ Presage engagement detection (optional)
+5. ✅ Progress tracking and recommendations
+6. ✅ User authentication and authorization
+7. ✅ Story and lesson management
+8. ✅ Community features (upload, moderation)
+9. ✅ Integration with ML service
+10. ✅ Error handling and validation
+
+## Updated Testing Checklist
+
+- [ ] Database connection works
+- [ ] User registration and login work
+- [ ] Protected routes require authentication
+- [ ] Story CRUD operations work
+- [ ] Gemini AI tutor responds correctly
+- [ ] ElevenLabs TTS generates audio
+- [ ] Presage integration detects engagement (if implemented)
+- [ ] Progress tracking updates correctly
+- [ ] Recommendations endpoint returns results
+- [ ] Voice transcription forwards to ML service
+- [ ] Error handling returns proper status codes
+
 ## Next Steps
 
 1. Add user progress tracking endpoints
 2. Implement comments/ratings
 3. Add file upload for media
-4. Set up cloud storage integration
-4. Add rate limiting
-5. Implement caching (Redis)
-6. Add API documentation (auto-generated by FastAPI at `/docs`)
+4. Set up cloud storage integration (DigitalOcean Spaces)
+5. Add rate limiting
+6. Implement caching (Redis)
+7. Add API documentation (auto-generated by FastAPI at `/docs`)
+8. **Deploy to DigitalOcean** (Droplet or App Platform)
+9. **Set up MongoDB** (if using hybrid approach with PostgreSQL)
+10. **Configure CDN** for media files
