@@ -26,6 +26,8 @@ See [SETUP.md](./SETUP.md) for detailed setup instructions.
 - **[BACKEND_PLAN.md](./BACKEND_PLAN.md)** - Detailed execution plan for Backend developer
 - **[ML_PLAN.md](./ML_PLAN.md)** - Detailed execution plan for ML/AI developer
 - **[SETUP.md](./SETUP.md)** - Development environment setup guide
+- **[INTEGRATION_TESTING.md](./INTEGRATION_TESTING.md)** - Comprehensive integration testing guide
+- **[QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md)** - Quick reference for testing components
 
 ## Team Structure
 
