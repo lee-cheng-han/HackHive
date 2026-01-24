@@ -113,7 +113,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
       case 'practice':
         return (
           <PracticeStep
-            exercises={lesson.exercises.filter(e => e.type !== 'pronunciation')}
+            exercises={lesson.exercises || []}
             onExerciseComplete={handleExerciseComplete}
             lesson={lesson}
             onShowInteractive={() => setShowInteractiveFlow(true)}

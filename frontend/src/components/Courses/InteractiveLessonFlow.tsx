@@ -52,9 +52,25 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
   const [hearts, setHearts] = useState(5); // Duolingo-style lives
   const [streak, setStreak] = useState(0);
 
-  const currentExercise = lesson.exercises[currentExerciseIndex];
-  const isLastExercise = currentExerciseIndex === lesson.exercises.length - 1;
-  const totalExercises = lesson.exercises.length;
+  // Check if lesson has exercises
+  const exercises = lesson.exercises || [];
+  
+  if (exercises.length === 0) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6, textAlign: 'center' }}>
+        <Typography variant="h5" color="text.secondary">
+          {translate('lesson.noExercises') || 'No exercises available for this lesson yet.'}
+        </Typography>
+        <Button variant="contained" onClick={onExit} sx={{ mt: 3 }}>
+          {translate('common.back')}
+        </Button>
+      </Container>
+    );
+  }
+
+  const currentExercise = exercises[currentExerciseIndex];
+  const isLastExercise = currentExerciseIndex === exercises.length - 1;
+  const totalExercises = exercises.length;
 
   const handleExerciseComplete = (score: number, xpEarned: number) => {
     setExerciseScores(prev => [...prev, score]);
@@ -76,7 +92,7 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
           totalScore: exerciseScores.reduce((a, b) => a + b, score) / (exerciseScores.length + 1),
           xpEarned: totalXP + xpEarned,
           correctAnswers: exerciseScores.filter(s => s >= 70).length + (score >= 70 ? 1 : 0),
-          totalExercises: lesson.exercises.length,
+          totalExercises: exercises.length,
           timeSpent: Math.floor((Date.now() - startTime) / 1000),
         };
         onComplete(results);
