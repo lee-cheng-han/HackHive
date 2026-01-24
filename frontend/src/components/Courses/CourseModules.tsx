@@ -15,27 +15,47 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
 }) => {
   const [courses, setCourses] = useState<Course[]>(propCourses || []);
   const [loading, setLoading] = useState(!propCourses);
+  const [error, setError] = useState<string>('');
   
   // Fetch courses from API on mount
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        console.log('Fetching courses from API...');
         const response = await fetch('http://localhost:3001/api/v1/courses');
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('Courses fetched:', data);
           setCourses(data);
+          setError('');
+        } else {
+          const errorText = await response.text();
+          console.error('API error:', response.status, errorText);
+          setError(`API Error: ${response.status}`);
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
+        setError('Failed to connect to backend. Using demo data.');
+        // Fallback to demo course if API fails
+        setCourses([
+          {
+            id: 'demo-course',
+            title: 'Plains Cree Basics (Demo)',
+            description: 'Demo course - backend not connected',
+            language: 'cr',
+            level: 'beginner',
+            lessons: [],
+          } as Course
+        ]);
       } finally {
         setLoading(false);
       }
     };
     
-    if (!propCourses) {
-      fetchCourses();
-    }
-  }, [propCourses]);
+    fetchCourses();
+  }, []);
   const { translate } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
