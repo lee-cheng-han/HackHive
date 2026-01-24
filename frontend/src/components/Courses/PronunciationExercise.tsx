@@ -8,11 +8,11 @@ import {
   LinearProgress,
   Alert,
   IconButton,
+  Chip,
 } from '@mui/material';
 import { Mic, MicOff, VolumeUp, Videocam, VideocamOff } from '@mui/icons-material';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { GradientText } from '../Common';
 
 interface PronunciationExerciseProps {
   targetText: string;

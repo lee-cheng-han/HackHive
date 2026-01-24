@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { DecorativeBorder, GradientText } from '../Common';
+import { DecorativeBorder } from '../Common';
 
 interface LessonCompleteProps {
   lessonTitle: string;
@@ -52,13 +52,21 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
           {accuracy >= 90 ? '🏆' : accuracy >= 70 ? '🎉' : '💪'}
         </Box>
 
-        <GradientText variant="h2" gradient="sunset">
+        <Typography 
+          variant="h2"
+          sx={{
+            fontWeight: 800,
+            background: `linear-gradient(135deg, ${themeColors.accent.amber}, ${themeColors.accent.coral})`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           {accuracy >= 90 
             ? translate('lesson.perfect') || 'Perfect!' 
             : accuracy >= 70 
             ? translate('lesson.greatJob') || 'Great Job!' 
             : translate('lesson.keepPracticing') || 'Keep Practicing!'}
-        </GradientText>
+        </Typography>
 
         <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
           {lessonTitle}
