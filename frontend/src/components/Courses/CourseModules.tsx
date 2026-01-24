@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Container, Typography, Paper, Card, CardContent, Button, Chip, LinearProgress, Avatar } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Typography, Paper, Card, CardContent, Button, Chip, LinearProgress, Avatar, CircularProgress } from '@mui/material';
 import { PlayArrow, CheckCircle, School } from '@mui/icons-material';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -10,61 +10,32 @@ interface CourseModulesProps {
   courses?: Course[];
 }
 
-// Mock course data - in real app, this would come from API
-const mockCourses: Course[] = [
-  {
-    id: 'cree-basics',
-    title: 'Plains Cree Basics',
-    description: 'Learn fundamental greetings, introductions, and common phrases in Plains Cree.',
-    language: 'cr',
-    level: 'beginner',
-    progress: 60,
-    completed: false,
-    lessons: [
-      {
-        id: 'lesson-1',
-        courseId: 'cree-basics',
-        title: 'Greetings and Introductions',
-        description: 'Learn how to greet people and introduce yourself',
-        order: 1,
-        type: 'conversation',
-        content: {
-          text: 'Tānisi! Niwāhkōmākanak. Tānitē nitōtēm?',
-          translation: 'Hello! My friends. How are you?',
-          vocabulary: [
-            {
-              word: 'Tānisi',
-              translation: 'Hello',
-              pronunciation: 'TAH-ni-si',
-            },
-            {
-              word: 'Niwāhkōmākanak',
-              translation: 'My friends',
-              pronunciation: 'ni-WAH-ko-MA-ka-nak',
-            },
-          ],
-        },
-        exercises: [],
-        completed: false,
-        progress: 60,
-      },
-    ],
-  },
-  {
-    id: 'ojibwe-family',
-    title: 'Ojibwe Family Terms',
-    description: 'Master vocabulary for family members and relationships.',
-    language: 'oj',
-    level: 'beginner',
-    progress: 100,
-    completed: true,
-    lessons: [],
-  },
-];
-
 export const CourseModules: React.FC<CourseModulesProps> = ({ 
-  courses = mockCourses
+  courses: propCourses
 }) => {
+  const [courses, setCourses] = useState<Course[]>(propCourses || []);
+  const [loading, setLoading] = useState(!propCourses);
+  
+  // Fetch courses from API on mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/v1/courses');
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data);
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (!propCourses) {
+      fetchCourses();
+    }
+  }, [propCourses]);
   const { translate } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -88,6 +59,17 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
           console.log('Starting lesson:', lessonId);
         }}
       />
+    );
+  }
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 6, textAlign: 'center' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+          {translate('common.loading')}
+        </Typography>
+      </Container>
     );
   }
 
