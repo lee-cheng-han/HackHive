@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 import { StoryScene as StorySceneType } from '../../types/story';
 import { StoryImage } from './StoryImage';
 import { AudioPlayer } from '../Audio/AudioPlayer';
+import { TranslationDisplay } from '../Language/TranslationDisplay';
 import { speechService } from '../../services/speech';
 
 interface StorySceneProps {
@@ -35,14 +36,13 @@ export const StoryScene: React.FC<StorySceneProps> = ({
       {scene.image_url && <StoryImage src={scene.image_url} alt={scene.text} />}
       
       <Box sx={{ mt: 2 }}>
-        <Typography variant="h6" component="p" sx={{ mb: 1 }}>
-          {scene.text}
-        </Typography>
-        {scene.text_translation && (
-          <Typography variant="body2" color="text.secondary">
-            {scene.text_translation}
-          </Typography>
-        )}
+        <TranslationDisplay
+          text={scene.text}
+          translation={scene.text_translation}
+          language="cr" // This should come from story metadata
+          showTranslation={!!scene.text_translation}
+          size="large"
+        />
       </Box>
 
       {scene.audio_url && (

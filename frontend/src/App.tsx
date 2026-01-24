@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { theme } from './theme/theme';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { MainNavigation } from './components/Navigation/MainNavigation';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { CourseModules } from './components/Courses/CourseModules';
 import { CommunityHub } from './components/Community/CommunityHub';
 import { Settings } from './components/Settings/Settings';
 import { Story } from './types/story';
-
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: { main: '#1976d2' },
-  },
-});
 
 // Mock story data for testing
 const mockStory: Story = {
@@ -64,15 +59,17 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <MainNavigation currentTab={currentTab} onTabChange={setCurrentTab} />
-        <Box sx={{ flexGrow: 1 }}>
-          {renderContent()}
+    <LanguageProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <MainNavigation currentTab={currentTab} onTabChange={setCurrentTab} />
+          <Box sx={{ flexGrow: 1 }}>
+            {renderContent()}
+          </Box>
         </Box>
-      </Box>
-    </ThemeProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

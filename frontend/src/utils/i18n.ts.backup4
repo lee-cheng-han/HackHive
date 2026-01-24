@@ -1,0 +1,281 @@
+// Internationalization and translation utilities
+// Full UI translation for immersive Indigenous language learning
+
+export type LanguageCode = 'en' | 'cr' | 'oj' | 'iu' | 'moh';
+
+export interface Language {
+  code: LanguageCode;
+  name: string;
+  nativeName: string;
+  flag?: string;
+}
+
+export const SUPPORTED_LANGUAGES: Language[] = [
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
+  { code: 'cr', name: 'Cree', nativeName: 'ᓀᐦᐃᔭᐍᐏᐣ', flag: '🦬' },
+  { code: 'oj', name: 'Ojibwe', nativeName: 'ᐊᓂᔑᓈᐯᒧᐎᓐ', flag: '🌲' },
+  { code: 'iu', name: 'Inuktitut', nativeName: 'ᐃᓄᒃᑎᑐᑦ', flag: '❄️' },
+  { code: 'moh', name: 'Mohawk', nativeName: 'Kanien\'kéha', flag: '🪶' },
+];
+
+// UI Translations
+export const translations: Record<LanguageCode, Record<string, string>> = {
+  en: {
+    // Navigation
+    'nav.dashboard': 'ᐚᐸᒧᓈᐱᐢᐠ',
+    'nav.courses': 'ᐊᒋᒧᓯᐢ',
+    'nav.community': 'ᐊᒋᒧᓯᐢ',
+    'nav.settings': 'ᐸᑭᑎᓀᐤ',
+    
+    // Dashboard
+    'dashboard.welcome': 'ᐊᐱᐤ',
+    'dashboard.wordsLearned': 'ᐊᔮᐦᑵᒣᐤ',
+    'dashboard.storiesCompleted': 'ᐋᒋᒧᐤ',
+    'dashboard.dayStreak': 'ᑮᓯᑳᐤ',
+    'dashboard.currentLevel': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommended': 'ᓰᐦᑭᒥᐍᐤ',
+    'dashboard.progress': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.continueJourney': 'ᐘᓇᐢᒋᑫᐤ',
+    'dashboard.recommendationsDescription': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommendationsPlaceholder': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.thisWeek': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.weeklyGoal': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.trendFromLastWeek': 'ᐊᓭᓇᒪᐍᐤ',
+    'dashboard.level.beginner': 'ᐊᓵᒼ',
+    'dashboard.level.intermediate': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.level.advanced': 'ᐊᒋᒧᓯᐢ',
+    
+    // Common
+    'common.loading': 'ᐲᐦᑖᓱᐤ',
+    'common.search': 'ᓂᑐᓇᐍᐤ',
+    'common.save': 'ᐊᒋᒧᓯᐢ',
+    'common.cancel': 'ᐊᒋᒧᓯᐢ',
+    'common.confirm': 'ᐊᒋᒧᓯᐢ',
+    'common.delete': 'ᐊᔭᒥᐦᐋᐤ',
+    'common.edit': 'ᐃᐦᑎᐤ',
+    'common.close': 'ᑭᐸᐦᐊᒪᐍᐤ',
+    'common.back': 'ᓇᔭᐦᑕᒼ',
+    'common.next': 'ᐊᒋᒧᓯᐢ',
+    'common.previous': 'ᐊᒋᒧᓯᐢ',
+    'common.submit': 'ᐊᒋᒧᓯᐢ',
+    'common.upload': 'ᓲᐢᑿᒋᐍᐤ',
+    'common.download': 'ᐯᐦᑕᐍᐤ',
+    
+    // Settings
+    'settings.title': 'ᐸᑭᑎᓀᐤ',
+    'settings.language': 'ᐊᒋᒧᓯᐢ',
+    'settings.preferredLanguage': 'ᐊᒋᒧᓯᐢ',
+    'settings.dialect': 'ᐊᒋᒧᓯᐢ',
+    'settings.accessibility': 'ᐊᒋᒧᓯᐢ',
+    'settings.account': 'ᐊᒋᒧᓯᐢ',
+    'settings.privacy': 'ᐊᒋᒧᓯᐢ',
+    'settings.chooseLanguage': 'ᓇᐘᓲᓀᐤ',
+    'settings.customizeExperience': 'ᓲᐢᑿᒋᐍᐤ',
+    'settings.fontSize': 'ᓴᑳᐢᑿᐦᐍᐤ',
+    'settings.enableSubtitles': 'ᐊᒋᒧᓯᐢ',
+    'settings.voiceInputEnabled': 'ᐊᒋᒧᓯᐢ',
+    'settings.kidsMode': 'ᐊᒋᒧᓯᐢ',
+    'settings.changePassword': 'ᑵᐢᑮᐤ',
+    'settings.editProfile': 'ᐃᐦᑎᐤ',
+    'settings.deleteAccount': 'ᐊᔭᒥᐦᐋᐤ',
+    'settings.allowDataCollection': 'ᐊᒋᒧᓯᐢ',
+    'settings.dataCollectionDescription': 'ᑵᐢᑲᐱᐤ',
+    
+    // Courses
+    'courses.title': 'Language Courses',
+    'courses.description': 'Explore courses in different Indigenous languages',
+    'courses.filter.all': 'all',
+    'courses.filter.cree': 'Cree',
+    'courses.filter.ojibwe': 'Ojibwe',
+    'courses.filter.inuktitut': 'Inuktitut',
+    'courses.filter.mohawk': 'Mohawk',
+    'courses.level.beginner': 'Beginner',
+    'courses.level.intermediate': 'Intermediate',
+    'courses.level.advanced': 'Advanced',
+    'courses.progress': 'Progress',
+    'courses.continueLearning': 'Continue Learning',
+    'courses.reviewCourse': 'Review Course',
+    
+    // Community
+    'community.title': 'Community Hub',
+    'community.description': 'Share stories, learn together, and preserve cultural heritage',
+    'community.shareStory': 'Share Your Story',
+    'community.uploadStory': 'Upload a Story or Course',
+    'community.storyTitle': 'Story Title',
+    'community.storyText': 'Story Text',
+    'community.uploadAudio': 'Upload Audio',
+    'community.uploadImage': 'Upload Image',
+    'community.submitForReview': 'Submit for Review',
+    'community.tab.stories': 'Stories',
+    'community.tab.courses': 'Courses',
+    'community.tab.discussions': 'Discussions',
+    'community.language': 'Language',
+    'community.level': 'Level',
+    'community.like': 'Like',
+    'community.comment': 'Comment',
+    'community.noStories': 'No community stories yet. Be the first to share!',
+  },
+  cr: {
+    // Navigation
+    'nav.dashboard': 'ᐚᐸᒧᓈᐱᐢᐠ',
+    'nav.courses': 'ᐊᒋᒧᓯᐢ',
+    'nav.community': 'ᐊᒋᒧᓯᐢ',
+    'nav.settings': 'ᐸᑭᑎᓀᐤ',
+    
+    // Dashboard
+    'dashboard.welcome': 'ᐊᐱᐤ',
+    'dashboard.wordsLearned': 'ᐊᔮᐦᑵᒣᐤ',
+    'dashboard.storiesCompleted': 'ᐋᒋᒧᐤ',
+    'dashboard.dayStreak': 'ᑮᓯᑳᐤ',
+    'dashboard.currentLevel': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommended': 'ᓰᐦᑭᒥᐍᐤ',
+    'dashboard.progress': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.continueJourney': 'ᐘᓇᐢᒋᑫᐤ',
+    'dashboard.recommendationsDescription': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommendationsPlaceholder': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.thisWeek': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.weeklyGoal': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.trendFromLastWeek': 'ᐊᓭᓇᒪᐍᐤ',
+    'dashboard.level.beginner': 'ᐊᓵᒼ',
+    'dashboard.level.intermediate': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.level.advanced': 'ᐊᒋᒧᓯᐢ',
+    
+    // Common
+    'common.loading': 'ᐲᐦᑖᓱᐤ',
+    'common.search': 'ᓂᑐᓇᐍᐤ',
+    'common.save': 'ᐊᒋᒧᓯᐢ',
+    'common.cancel': 'ᐊᒋᒧᓯᐢ',
+    'common.confirm': 'ᐊᒋᒧᓯᐢ',
+    'common.delete': 'ᐊᔭᒥᐦᐋᐤ',
+    'common.edit': 'ᐃᐦᑎᐤ',
+    'common.close': 'ᑭᐸᐦᐊᒪᐍᐤ',
+    'common.back': 'ᓇᔭᐦᑕᒼ',
+    'common.next': 'ᐊᒋᒧᓯᐢ',
+    'common.previous': 'ᐊᒋᒧᓯᐢ',
+    'common.submit': 'ᐊᒋᒧᓯᐢ',
+    'common.upload': 'ᓲᐢᑿᒋᐍᐤ',
+    'common.download': 'ᐯᐦᑕᐍᐤ',
+    
+    // Settings
+    'settings.title': 'ᐸᑭᑎᓀᐤ',
+    'settings.language': 'ᐊᒋᒧᓯᐢ',
+    'settings.preferredLanguage': 'ᐊᒋᒧᓯᐢ',
+    'settings.dialect': 'ᐊᒋᒧᓯᐢ',
+    'settings.accessibility': 'ᐊᒋᒧᓯᐢ',
+    'settings.account': 'ᐊᒋᒧᓯᐢ',
+    'settings.privacy': 'ᐊᒋᒧᓯᐢ',
+    'settings.chooseLanguage': 'ᓇᐘᓲᓀᐤ',
+    'settings.customizeExperience': 'ᓲᐢᑿᒋᐍᐤ',
+    'settings.fontSize': 'ᓴᑳᐢᑿᐦᐍᐤ',
+    'settings.enableSubtitles': 'ᐊᒋᒧᓯᐢ',
+    'settings.voiceInputEnabled': 'ᐊᒋᒧᓯᐢ',
+    'settings.kidsMode': 'ᐊᒋᒧᓯᐢ',
+    'settings.changePassword': 'ᑵᐢᑮᐤ',
+    'settings.editProfile': 'ᐃᐦᑎᐤ',
+    'settings.deleteAccount': 'ᐊᔭᒥᐦᐋᐤ',
+    'settings.allowDataCollection': 'ᐊᒋᒧᓯᐢ',
+    'settings.dataCollectionDescription': 'ᑵᐢᑲᐱᐤ',
+  },
+  oj: {
+    // Navigation
+    'nav.dashboard': 'ᐚᐸᒧᓈᐱᐢᐠ',
+    'nav.courses': 'ᐊᒋᒧᓯᐢ',
+    'nav.community': 'ᐊᒋᒧᓯᐢ',
+    'nav.settings': 'ᐸᑭᑎᓀᐤ',
+    
+    // Dashboard
+    'dashboard.welcome': 'ᐊᐱᐤ',
+    'dashboard.wordsLearned': 'ᐊᔮᐦᑵᒣᐤ',
+    'dashboard.storiesCompleted': 'ᐋᒋᒧᐤ',
+    'dashboard.dayStreak': 'ᑮᓯᑳᐤ',
+    'dashboard.currentLevel': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommended': 'ᓰᐦᑭᒥᐍᐤ',
+    'dashboard.progress': 'ᐊᒋᒧᓯᐢ',
+    
+    // Common
+    'common.loading': 'ᐲᐦᑖᓱᐤ',
+    'common.search': 'ᓂᑐᓇᐍᐤ',
+    'common.save': 'ᐊᒋᒧᓯᐢ',
+    'common.cancel': 'ᐊᒋᒧᓯᐢ',
+    'common.confirm': 'ᐊᒋᒧᓯᐢ',
+    
+    // Settings
+    'settings.title': 'ᐸᑭᑎᓀᐤ',
+    'settings.language': 'ᐊᒋᒧᓯᐢ',
+    'settings.accessibility': 'ᐊᒋᒧᓯᐢ',
+    'settings.account': 'ᐊᒋᒧᓯᐢ',
+    'settings.privacy': 'ᐊᒋᒧᓯᐢ',
+  },
+  iu: {
+    // Navigation
+    'nav.dashboard': 'ᐚᐸᒧᓈᐱᐢᐠ',
+    'nav.courses': 'ᐊᒋᒧᓯᐢ',
+    'nav.community': 'ᐊᒋᒧᓯᐢ',
+    'nav.settings': 'ᐸᑭᑎᓀᐤ',
+    
+    // Dashboard
+    'dashboard.welcome': 'ᐊᐱᐤ',
+    'dashboard.wordsLearned': 'ᐊᔮᐦᑵᒣᐤ',
+    'dashboard.storiesCompleted': 'ᐋᒋᒧᐤ',
+    'dashboard.dayStreak': 'ᑮᓯᑳᐤ',
+    'dashboard.currentLevel': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommended': 'ᓰᐦᑭᒥᐍᐤ',
+    'dashboard.progress': 'ᐊᒋᒧᓯᐢ',
+    
+    // Common
+    'common.loading': 'ᐲᐦᑖᓱᐤ',
+    'common.search': 'ᓂᑐᓇᐍᐤ',
+    
+    // Settings
+    'settings.title': 'ᐸᑭᑎᓀᐤ',
+    'settings.language': 'ᐊᒋᒧᓯᐢ',
+    'settings.accessibility': 'ᐊᒋᒧᓯᐢ',
+    'settings.account': 'ᐊᒋᒧᓯᐢ',
+    'settings.privacy': 'ᐊᒋᒧᓯᐢ',
+  },
+  moh: {
+    // Navigation
+    'nav.dashboard': 'ᐚᐸᒧᓈᐱᐢᐠ',
+    'nav.courses': 'ᐊᒋᒧᓯᐢ',
+    'nav.community': 'ᐊᒋᒧᓯᐢ',
+    'nav.settings': 'ᐸᑭᑎᓀᐤ',
+    
+    // Dashboard
+    'dashboard.welcome': 'ᐊᐱᐤ',
+    'dashboard.wordsLearned': 'ᐊᔮᐦᑵᒣᐤ',
+    'dashboard.storiesCompleted': 'ᐋᒋᒧᐤ',
+    'dashboard.dayStreak': 'ᑮᓯᑳᐤ',
+    'dashboard.currentLevel': 'ᐊᒋᒧᓯᐢ',
+    'dashboard.recommended': 'ᓰᐦᑭᒥᐍᐤ',
+    'dashboard.progress': 'ᐊᒋᒧᓯᐢ',
+    
+    // Common
+    'common.loading': 'ᐲᐦᑖᓱᐤ',
+    'common.search': 'ᓂᑐᓇᐍᐤ',
+    
+    // Settings
+    'settings.title': 'ᐸᑭᑎᓀᐤ',
+    'settings.language': 'ᐊᒋᒧᓯᐢ',
+    'settings.accessibility': 'ᐊᒋᒧᓯᐢ',
+    'settings.account': 'ᐊᒋᒧᓯᐢ',
+    'settings.privacy': 'ᐊᒋᒧᓯᐢ',
+  },
+};
+
+// Get translation for current language
+export const t = (key: string, lang: LanguageCode = 'en'): string => {
+  return translations[lang]?.[key] || translations.en[key] || key;
+};
+
+// Get language by code
+export const getLanguage = (code: LanguageCode): Language | undefined => {
+  return SUPPORTED_LANGUAGES.find((lang) => lang.code === code);
+};
+
+// Format language name with native name
+export const formatLanguageName = (code: LanguageCode): string => {
+  const lang = getLanguage(code);
+  if (!lang) return code;
+  return `${lang.name} (${lang.nativeName})`;
+};
+

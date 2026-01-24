@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Container, Typography, Paper, Card, CardContent, Button, Chip } from '@mui/material';
-import { PlayArrow, CheckCircle } from '@mui/icons-material';
+import { Box, Container, Typography, Paper, Card, CardContent, Button, Chip, LinearProgress, Avatar } from '@mui/material';
+import { PlayArrow, CheckCircle, School } from '@mui/icons-material';
+import { themeColors } from '../../theme/theme';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Course {
   id: string;
@@ -39,24 +41,61 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
     },
   ]
 }) => {
+  const { translate } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
 
-  const languages = ['all', 'Cree', 'Ojibwe', 'Inuktitut', 'Mohawk'];
+  const languages = [
+    { value: 'all', label: translate('courses.filter.all') },
+    { value: 'Cree', label: translate('courses.filter.cree') },
+    { value: 'Ojibwe', label: translate('courses.filter.ojibwe') },
+    { value: 'Inuktitut', label: translate('courses.filter.inuktitut') },
+    { value: 'Mohawk', label: translate('courses.filter.mohawk') },
+  ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
-          Language Courses
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+      <Box sx={{ mb: 4 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={2}>
+          <Avatar sx={{ bgcolor: themeColors.primary.main, width: 48, height: 48 }}>
+            <School />
+          </Avatar>
+          <Typography 
+            variant="h4" 
+            component="h1"
+            sx={{ 
+              fontWeight: 700,
+              color: themeColors.primary.main
+            }}
+          >
+            {translate('courses.title')}
+          </Typography>
+        </Box>
+        <Typography variant="body1" color="text.secondary" mb={3}>
+          {translate('courses.description')}
         </Typography>
-        <Box display="flex" gap={1}>
+        <Box display="flex" flexWrap="wrap" gap={1.5}>
           {languages.map((lang) => (
             <Chip
-              key={lang}
-              label={lang}
-              onClick={() => setSelectedLanguage(lang)}
-              color={selectedLanguage === lang ? 'primary' : 'default'}
-              variant={selectedLanguage === lang ? 'filled' : 'outlined'}
+              key={lang.value}
+              label={lang.label}
+              onClick={() => setSelectedLanguage(lang.value)}
+              sx={{
+                bgcolor: selectedLanguage === lang.value 
+                  ? themeColors.primary.main 
+                  : 'transparent',
+                color: selectedLanguage === lang.value 
+                  ? 'white' 
+                  : themeColors.text.primary,
+                border: `2px solid ${selectedLanguage === lang.value ? themeColors.primary.main : themeColors.primary.light}`,
+                fontWeight: selectedLanguage === lang.value ? 600 : 500,
+                '&:hover': {
+                  bgcolor: selectedLanguage === lang.value 
+                    ? themeColors.primary.dark 
+                    : themeColors.background.subtle,
+                },
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
             />
           ))}
         </Box>
@@ -74,49 +113,119 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
                 maxWidth: { md: 'calc(33.333% - 16px)' }
               }}
             >
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                {course.thumbnail && (
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                  }
+                }}
+              >
+                {course.thumbnail ? (
                   <Box
                     component="img"
-                    sx={{ height: 140, width: '100%', objectFit: 'cover' }}
+                    sx={{ 
+                      height: 180, 
+                      width: '100%', 
+                      objectFit: 'cover',
+                      bgcolor: themeColors.background.subtle
+                    }}
                     src={course.thumbnail}
                     alt={course.title}
                   />
+                ) : (
+                  <Box
+                    sx={{
+                      height: 180,
+                      width: '100%',
+                      bgcolor: themeColors.primary.light,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <School sx={{ fontSize: 64, color: 'white', opacity: 0.3 }} />
+                  </Box>
                 )}
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="start" mb={1}>
-                    <Typography variant="h6" component="h2">
+                {course.completed && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      bgcolor: themeColors.success.main,
+                      borderRadius: '50%',
+                      p: 0.5,
+                    }}
+                  >
+                    <CheckCircle sx={{ color: 'white', fontSize: 24 }} />
+                  </Box>
+                )}
+                <CardContent sx={{ flexGrow: 1, p: 2.5 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="start" mb={1.5}>
+                    <Typography 
+                      variant="h6" 
+                      component="h2"
+                      sx={{ 
+                        fontWeight: 600,
+                        color: themeColors.text.primary,
+                        flex: 1
+                      }}
+                    >
                       {course.title}
                     </Typography>
-                    {course.completed && <CheckCircle color="success" />}
                   </Box>
-                  <Chip label={course.level} size="small" sx={{ mb: 1 }} />
-                  <Typography variant="body2" color="text.secondary" paragraph>
+                  <Chip 
+                    label={course.level === 'Beginner' 
+                      ? translate('courses.level.beginner')
+                      : course.level === 'Intermediate'
+                      ? translate('courses.level.intermediate')
+                      : translate('courses.level.advanced')} 
+                    size="small" 
+                    sx={{ 
+                      mb: 1.5,
+                      bgcolor: themeColors.accent.sage,
+                      color: 'white',
+                      fontWeight: 500
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    paragraph
+                    sx={{ mb: 2, minHeight: 40 }}
+                  >
                     {course.description}
                   </Typography>
                   {course.progress !== undefined && (
                     <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Progress: {course.progress}%
-                      </Typography>
-                      <Box
-                        sx={{
-                          width: '100%',
-                          height: 8,
-                          bgcolor: 'grey.200',
-                          borderRadius: 1,
-                          mt: 0.5,
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: `${course.progress}%`,
-                            height: '100%',
-                            bgcolor: 'primary.main',
-                            borderRadius: 1,
-                          }}
-                        />
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                        <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                          {translate('courses.progress')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                          {course.progress}%
+                        </Typography>
                       </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={course.progress}
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: themeColors.background.subtle,
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 4,
+                            bgcolor: course.completed 
+                              ? themeColors.success.main 
+                              : themeColors.primary.main
+                          }
+                        }}
+                      />
                     </Box>
                   )}
                 </CardContent>
@@ -125,8 +234,19 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
                     variant="contained"
                     fullWidth
                     startIcon={course.completed ? <CheckCircle /> : <PlayArrow />}
+                    sx={{
+                      bgcolor: course.completed 
+                        ? themeColors.success.main 
+                        : themeColors.primary.main,
+                      '&:hover': {
+                        bgcolor: course.completed 
+                          ? themeColors.success.dark 
+                          : themeColors.primary.dark,
+                      },
+                      py: 1.25
+                    }}
                   >
-                    {course.completed ? 'Review' : 'Continue'}
+                    {course.completed ? translate('courses.reviewCourse') : translate('courses.continueLearning')}
                   </Button>
                 </Box>
               </Card>
