@@ -55,6 +55,8 @@ export const LessonView: React.FC<LessonViewProps> = ({
   const [currentStep, setCurrentStep] = useState<LessonStep>('content');
   const [completedSteps, setCompletedSteps] = useState<Set<LessonStep>>(new Set());
   const [exerciseScores, setExerciseScores] = useState<Record<string, number>>({});
+  const [showInteractiveFlow, setShowInteractiveFlow] = useState(false);
+  const [lessonResults, setLessonResults] = useState<any>(null);
 
   const steps: { key: LessonStep; label: string }[] = [
     { key: 'content', label: translate('lesson.step.content') || 'Content' },
@@ -111,6 +113,8 @@ export const LessonView: React.FC<LessonViewProps> = ({
           <PracticeStep
             exercises={lesson.exercises.filter(e => e.type !== 'pronunciation')}
             onExerciseComplete={handleExerciseComplete}
+            lesson={lesson}
+            onShowInteractive={() => setShowInteractiveFlow(true)}
           />
         );
       case 'quiz':
@@ -126,6 +130,45 @@ export const LessonView: React.FC<LessonViewProps> = ({
   };
 
   const allStepsComplete = completedSteps.size === steps.length;
+
+  // Show interactive flow when user clicks practice
+  if (showInteractiveFlow && !lessonResults) {
+    return (
+      <InteractiveLessonFlow
+        lesson={lesson}
+        onComplete={(results) => {
+          setLessonResults(results);
+          setShowInteractiveFlow(false);
+          handleStepComplete('practice');
+        }}
+        onExit={() => {
+          setShowInteractiveFlow(false);
+        }}
+      />
+    );
+  }
+
+  // Show completion screen after interactive flow
+  if (lessonResults) {
+    return (
+      <LessonComplete
+        lessonTitle={lesson.title}
+        totalScore={lessonResults.totalScore}
+        xpEarned={lessonResults.xpEarned}
+        correctAnswers={lessonResults.correctAnswers}
+        totalExercises={lessonResults.totalExercises}
+        streak={lessonResults.correctAnswers}
+        onContinue={() => {
+          setLessonResults(null);
+          setCurrentStep('quiz');
+        }}
+        onReview={() => {
+          setLessonResults(null);
+          setShowInteractiveFlow(true);
+        }}
+      />
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
@@ -444,44 +487,36 @@ const GrammarStep: React.FC<{
 const PracticeStep: React.FC<{
   exercises: Lesson['exercises'];
   onExerciseComplete: (exerciseId: string, score: number) => void;
-}> = ({ exercises, onExerciseComplete }) => {
+  lesson: Lesson;
+  onShowInteractive: () => void;
+}> = ({ exercises, lesson, onShowInteractive }) => {
   const { translate } = useLanguage();
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const currentExercise = exercises[currentExerciseIndex];
-
-  if (!currentExercise) {
-    return (
-      <Paper sx={{ p: 3, textAlign: 'center' }}>
-        <CheckCircle sx={{ fontSize: 64, color: themeColors.success.main, mb: 2 }} />
-        <Typography variant="h6">
-          {translate('lesson.practiceComplete') || 'Practice Complete!'}
-        </Typography>
-      </Paper>
-    );
-  }
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          {translate('lesson.exercise') || 'Exercise'} {currentExerciseIndex + 1} / {exercises.length}
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={((currentExerciseIndex + 1) / exercises.length) * 100}
-          sx={{ mt: 1, height: 8, borderRadius: 4 }}
-        />
-      </Box>
-
-      <QuizComponent
-        exercise={currentExercise}
-        onComplete={(score) => {
-          onExerciseComplete(currentExercise.id, score);
-          if (currentExerciseIndex < exercises.length - 1) {
-            setCurrentExerciseIndex(prev => prev + 1);
-          }
+    <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Typography variant="h5" gutterBottom fontWeight={600}>
+        {translate('lesson.readyToPractice') || 'Ready to Practice?'}
+      </Typography>
+      <Typography variant="body1" color="text.secondary" paragraph>
+        {translate('lesson.practiceDescription') || `You'll complete ${exercises.length} interactive exercises to master this lesson.`}
+      </Typography>
+      <Button
+        variant="contained"
+        size="large"
+        onClick={onShowInteractive}
+        sx={{
+          mt: 2,
+          px: 6,
+          py: 2,
+          fontSize: '1.1rem',
+          background: `linear-gradient(135deg, ${themeColors.success.main}, ${themeColors.success.light})`,
+          '&:hover': {
+            background: `linear-gradient(135deg, ${themeColors.success.dark}, ${themeColors.success.main})`,
+          },
         }}
-      />
+      >
+        {translate('lesson.startPractice') || 'START PRACTICE'}
+      </Button>
     </Paper>
   );
 };

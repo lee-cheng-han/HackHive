@@ -130,6 +130,9 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     'lesson.whatDidYouHear': 'What did you hear?',
     'lesson.enterAnswer': 'Enter your answer',
     'lesson.enterTranslation': 'Enter translation',
+    'lesson.readyToPractice': 'Ready to Practice?',
+    'lesson.practiceDescription': 'You\'ll complete interactive exercises to master this lesson.',
+    'lesson.startPractice': 'START PRACTICE',
     
     // Pronunciation
     'pronunciation.practice': 'Pronunciation Practice',
@@ -299,6 +302,9 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     'lesson.whatDidYouHear': 'ᐊᒋᒧᓯᐢ',
     'lesson.enterAnswer': 'ᐊᒋᒧᓯᐢ',
     'lesson.enterTranslation': 'ᐊᒋᒧᓯᐢ',
+    'lesson.readyToPractice': 'ᐊᒋᒧᓯᐢ',
+    'lesson.practiceDescription': 'ᐊᒋᒧᓯᐢ',
+    'lesson.startPractice': 'ᐊᒋᒧᓯᐢ',
     
     // Pronunciation
     'pronunciation.practice': 'ᐊᒋᒧᓯᐢ',
