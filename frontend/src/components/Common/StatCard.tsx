@@ -46,9 +46,9 @@ export const StatCard: React.FC<StatCardProps> = ({
       dark: themeColors.warning.dark,
     },
     info: {
-      main: themeColors.info.main,
-      light: themeColors.info.light,
-      dark: themeColors.info.dark,
+      main: themeColors.secondary.main,
+      light: themeColors.secondary.light,
+      dark: themeColors.secondary.dark,
     },
   };
 

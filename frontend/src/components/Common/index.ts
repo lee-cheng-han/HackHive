@@ -12,5 +12,9 @@ export { AvatarWithBadge } from './AvatarWithBadge';
 export { SkeletonLoader, CardSkeleton, ListSkeleton } from './SkeletonLoader';
 export { ActionButton } from './ActionButton';
 export { DividerWithText } from './DividerWithText';
+export { DecorativeBorder } from './DecorativeBorder';
+export { PatternCard } from './PatternCard';
+export { GradientText } from './GradientText';
+export { IconBadge } from './IconBadge';
 export { ComponentShowcase } from './ComponentShowcase';
 

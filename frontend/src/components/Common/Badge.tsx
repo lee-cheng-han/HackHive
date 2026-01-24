@@ -19,7 +19,7 @@ export const Badge: React.FC<BadgeProps> = ({
     primary: themeColors.primary.main,
     success: themeColors.success.main,
     warning: themeColors.warning.main,
-    info: themeColors.info.main,
+    info: themeColors.secondary.main,
     error: themeColors.error.main,
     default: themeColors.text.secondary,
   };

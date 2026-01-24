@@ -3,46 +3,71 @@ import { Box, Container, Typography, Paper, Card, CardContent, Button, Chip, Lin
 import { PlayArrow, CheckCircle, School } from '@mui/icons-material';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-interface Course {
-  id: string;
-  title: string;
-  language: string;
-  level: string;
-  description: string;
-  thumbnail?: string;
-  progress?: number;
-  completed?: boolean;
-}
+import { CourseDetail } from './CourseDetail';
+import { Course } from '../../types/course';
 
 interface CourseModulesProps {
   courses?: Course[];
 }
 
+// Mock course data - in real app, this would come from API
+const mockCourses: Course[] = [
+  {
+    id: 'cree-basics',
+    title: 'Plains Cree Basics',
+    description: 'Learn fundamental greetings, introductions, and common phrases in Plains Cree.',
+    language: 'cr',
+    level: 'beginner',
+    progress: 60,
+    completed: false,
+    lessons: [
+      {
+        id: 'lesson-1',
+        courseId: 'cree-basics',
+        title: 'Greetings and Introductions',
+        description: 'Learn how to greet people and introduce yourself',
+        order: 1,
+        type: 'conversation',
+        content: {
+          text: 'Tānisi! Niwāhkōmākanak. Tānitē nitōtēm?',
+          translation: 'Hello! My friends. How are you?',
+          vocabulary: [
+            {
+              word: 'Tānisi',
+              translation: 'Hello',
+              pronunciation: 'TAH-ni-si',
+            },
+            {
+              word: 'Niwāhkōmākanak',
+              translation: 'My friends',
+              pronunciation: 'ni-WAH-ko-MA-ka-nak',
+            },
+          ],
+        },
+        exercises: [],
+        completed: false,
+        progress: 60,
+      },
+    ],
+  },
+  {
+    id: 'ojibwe-family',
+    title: 'Ojibwe Family Terms',
+    description: 'Master vocabulary for family members and relationships.',
+    language: 'oj',
+    level: 'beginner',
+    progress: 100,
+    completed: true,
+    lessons: [],
+  },
+];
+
 export const CourseModules: React.FC<CourseModulesProps> = ({ 
-  courses = [
-    {
-      id: 'cree-basics',
-      title: 'Plains Cree Basics',
-      language: 'Cree',
-      level: 'Beginner',
-      description: 'Learn fundamental greetings, introductions, and common phrases in Plains Cree.',
-      progress: 60,
-      completed: false,
-    },
-    {
-      id: 'ojibwe-family',
-      title: 'Ojibwe Family Terms',
-      language: 'Ojibwe',
-      level: 'Beginner',
-      description: 'Master vocabulary for family members and relationships.',
-      progress: 100,
-      completed: true,
-    },
-  ]
+  courses = mockCourses
 }) => {
   const { translate } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   const languages = [
     { value: 'all', label: translate('courses.filter.all') },
@@ -51,6 +76,20 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
     { value: 'Inuktitut', label: translate('courses.filter.inuktitut') },
     { value: 'Mohawk', label: translate('courses.filter.mohawk') },
   ];
+
+  // If a course is selected, show course detail
+  if (selectedCourse) {
+    return (
+      <CourseDetail
+        course={selectedCourse}
+        onBack={() => setSelectedCourse(null)}
+        onLessonStart={(lessonId) => {
+          // Navigate to lesson
+          console.log('Starting lesson:', lessonId);
+        }}
+      />
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
@@ -180,9 +219,9 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
                     </Typography>
                   </Box>
                   <Chip 
-                    label={course.level === 'Beginner' 
+                    label={course.level === 'beginner' 
                       ? translate('courses.level.beginner')
-                      : course.level === 'Intermediate'
+                      : course.level === 'intermediate'
                       ? translate('courses.level.intermediate')
                       : translate('courses.level.advanced')} 
                     size="small" 
@@ -247,6 +286,14 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
                     }}
                   >
                     {course.completed ? translate('courses.reviewCourse') : translate('courses.continueLearning')}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => setSelectedCourse(course)}
+                    sx={{ mt: 1 }}
+                  >
+                    {translate('course.viewDetails') || 'View Details'}
                   </Button>
                 </Box>
               </Card>

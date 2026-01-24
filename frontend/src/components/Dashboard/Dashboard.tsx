@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, Container, Typography, Paper, LinearProgress } from '@mui/material';
-import { TrendingUp, Book, EmojiEvents, Star } from '@mui/icons-material';
+import { Box, Container, Typography, LinearProgress, Card, CardContent, Chip } from '@mui/material';
+import { TrendingUp, Book, EmojiEvents, Star, AutoStories, Whatshot } from '@mui/icons-material';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { StatCard } from '../Common/StatCard';
+import { StatCard, DecorativeBorder, GradientText, PatternCard } from '../Common';
 import { themeColors } from '../../theme/theme';
 
 interface DashboardProps {
@@ -35,22 +35,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-      <Box sx={{ mb: 4 }}>
+      {/* Hero Section with Decorative Border */}
+      <Box sx={{ mb: 4, className: 'fade-in' }}>
+        <DecorativeBorder position="top" variant="gradient" thickness={4} />
+        <Box sx={{ mt: 3, mb: 2 }}>
+          <Typography 
+            variant="h3" 
+            component="h1"
+            sx={{
+              fontWeight: 800,
+              background: `linear-gradient(135deg, ${themeColors.primary.dark}, ${themeColors.primary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {translate('dashboard.welcome')}, {userName}! 🦬
+          </Typography>
+        </Box>
         <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom
+          variant="h6" 
           sx={{ 
-            fontWeight: 700,
-            color: themeColors.primary.main,
-            mb: 1
+            color: themeColors.text.secondary,
+            fontWeight: 400,
+            mt: 1
           }}
         >
-          {translate('dashboard.welcome')}, {userName}! 👋
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
           {translate('dashboard.continueJourney')}
         </Typography>
+        <DecorativeBorder position="bottom" variant="geometric" thickness={3} />
       </Box>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
@@ -94,65 +106,185 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Recommendations Section */}
         <Box sx={{ flex: { xs: '1 1 100%', md: '2 1 calc(66.666% - 12px)' } }}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Star sx={{ color: themeColors.accent.sunset }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {translate('dashboard.recommended')}
-              </Typography>
-            </Box>
-            <Typography variant="body2" color="text.secondary" paragraph>
-              {translate('dashboard.recommendationsDescription')}
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              {/* Placeholder for recommendations list */}
-              <Box 
-                sx={{ 
-                  p: 2, 
-                  bgcolor: themeColors.background.subtle, 
-                  borderRadius: 2,
-                  textAlign: 'center'
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {translate('dashboard.recommendationsPlaceholder')}
+          <PatternCard pattern="geometric" accentColor={themeColors.accent.turquoise} elevation={2}>
+            <CardContent sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <Star sx={{ color: themeColors.accent.amber, fontSize: 28 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {translate('dashboard.recommended')}
                 </Typography>
+                <Chip 
+                  label="NEW" 
+                  size="small" 
+                  sx={{ 
+                    ml: 'auto',
+                    background: `linear-gradient(135deg, ${themeColors.accent.coral}, ${themeColors.accent.amber})`,
+                    color: 'white',
+                    fontWeight: 700
+                  }} 
+                />
               </Box>
-            </Box>
-          </Paper>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                {translate('dashboard.recommendationsDescription')}
+              </Typography>
+              
+              {/* Sample recommendation cards */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+                <Card 
+                  sx={{ 
+                    background: `linear-gradient(135deg, ${themeColors.background.paper}, ${themeColors.background.subtle})`,
+                    border: `2px solid ${themeColors.accent.turquoise}33`,
+                    '&:hover': {
+                      borderColor: themeColors.accent.turquoise,
+                    }
+                  }}
+                >
+                  <CardContent sx={{ p: 2 }}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <AutoStories sx={{ color: themeColors.accent.turquoise, fontSize: 32 }} />
+                      <Box flex={1}>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          ᐋᒋᒧᐤ - The Morning Song
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Beginner · 5 min · Cree
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+                
+                <Card 
+                  sx={{ 
+                    background: `linear-gradient(135deg, ${themeColors.background.paper}, ${themeColors.background.subtle})`,
+                    border: `2px solid ${themeColors.accent.coral}33`,
+                    '&:hover': {
+                      borderColor: themeColors.accent.coral,
+                    }
+                  }}
+                >
+                  <CardContent sx={{ p: 2 }}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Whatshot sx={{ color: themeColors.accent.coral, fontSize: 32 }} />
+                      <Box flex={1}>
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          ᓂᑐᓇᐍᐤ - Family Vocabulary
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Beginner · 15 min · Practice
+                        </Typography>
+                      </Box>
+                      <Chip 
+                        label="🔥" 
+                        size="small" 
+                        sx={{ bgcolor: themeColors.accent.amber + '20' }} 
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            </CardContent>
+          </PatternCard>
         </Box>
 
         {/* Progress Chart */}
         <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 calc(33.333% - 12px)' } }}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <TrendingUp sx={{ color: themeColors.primary.main }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                {translate('dashboard.progress')}
-              </Typography>
-            </Box>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {translate('dashboard.thisWeek')}
-              </Typography>
-              <LinearProgress 
-                variant="determinate" 
-                value={65} 
-                sx={{ 
-                  height: 8, 
-                  borderRadius: 4,
-                  bgcolor: themeColors.background.subtle,
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 4,
-                    bgcolor: themeColors.primary.main
-                  }
-                }} 
-              />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                65% {translate('dashboard.weeklyGoal')}
-              </Typography>
-            </Box>
-          </Paper>
+          <PatternCard pattern="wave" accentColor={themeColors.secondary.main} elevation={2}>
+            <CardContent sx={{ p: 3 }}>
+              <Box display="flex" alignItems="center" gap={1} mb={3}>
+                <TrendingUp sx={{ color: themeColors.secondary.main, fontSize: 28 }} />
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {translate('dashboard.progress')}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ mt: 2 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="baseline" mb={1}>
+                  <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                    {translate('dashboard.thisWeek')}
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 700,
+                      background: `linear-gradient(135deg, ${themeColors.secondary.main}, ${themeColors.accent.turquoise})`,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >
+                    65%
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={65} 
+                  sx={{ 
+                    height: 12, 
+                    borderRadius: 6,
+                    bgcolor: themeColors.background.subtle,
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 6,
+                      background: `linear-gradient(90deg, ${themeColors.accent.turquoise}, ${themeColors.secondary.main}, ${themeColors.accent.purple})`
+                    }
+                  }} 
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
+                  {translate('dashboard.weeklyGoal')}
+                </Typography>
+              </Box>
+              
+              {/* Mini achievement badges */}
+              <Box sx={{ mt: 3, pt: 2, borderTop: `1px dashed ${themeColors.background.subtle}` }}>
+                <Typography variant="caption" color="text.secondary" gutterBottom display="block">
+                  Recent achievements
+                </Typography>
+                <Box display="flex" gap={1} mt={1}>
+                  <Box 
+                    sx={{ 
+                      width: 32, 
+                      height: 32, 
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${themeColors.accent.amber}, ${themeColors.accent.coral})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    🏆
+                  </Box>
+                  <Box 
+                    sx={{ 
+                      width: 32, 
+                      height: 32, 
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${themeColors.success.main}, ${themeColors.accent.sage})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    ⭐
+                  </Box>
+                  <Box 
+                    sx={{ 
+                      width: 32, 
+                      height: 32, 
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${themeColors.accent.turquoise}, ${themeColors.secondary.main})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    🎯
+                  </Box>
+                </Box>
+              </Box>
+            </CardContent>
+          </PatternCard>
         </Box>
       </Box>
     </Container>

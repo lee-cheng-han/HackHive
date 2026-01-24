@@ -115,7 +115,7 @@ export const Settings: React.FC = () => {
 
       <Paper sx={{ p: 3 }}>
         <Box display="flex" alignItems="center" gap={1.5} mb={2}>
-          <PrivacyTip sx={{ color: themeColors.info.main }} />
+          <PrivacyTip sx={{ color: themeColors.secondary.main }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {translate('settings.privacy')}
           </Typography>
