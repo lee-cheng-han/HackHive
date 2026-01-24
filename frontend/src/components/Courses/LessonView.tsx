@@ -323,7 +323,7 @@ const ContentStep: React.FC<{ lesson: Lesson; onComplete: () => void }> = ({
         <TranslationDisplay
           text={lesson.content.text}
           translation={lesson.content.translation}
-          language={lesson.courseId.split('-')[0]} // Extract language from courseId
+          language={lesson.courseId ? lesson.courseId.split('-')[0] : 'cr'} // Extract language from courseId
           showTranslation={!!lesson.content.translation}
           size="large"
         />
@@ -346,7 +346,7 @@ const ContentStep: React.FC<{ lesson: Lesson; onComplete: () => void }> = ({
                 <TranslationDisplay
                   text={example.text}
                   translation={example.translation}
-                  language={lesson.courseId.split('-')[0]}
+                  language={lesson.courseId ? lesson.courseId.split('-')[0] : 'cr'}
                   showTranslation={true}
                 />
                 {example.audioUrl && (
