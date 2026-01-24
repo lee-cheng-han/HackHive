@@ -29,6 +29,8 @@ import { TranslationDisplay } from '../Language/TranslationDisplay';
 import { AudioPlayer } from '../Audio/AudioPlayer';
 import { QuizComponent } from './QuizComponent';
 import { PronunciationCoach } from './PronunciationCoach';
+import { InteractiveLessonFlow } from './InteractiveLessonFlow';
+import { LessonComplete } from './LessonComplete';
 
 interface LessonViewProps {
   lesson: Lesson;
