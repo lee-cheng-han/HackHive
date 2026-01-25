@@ -154,7 +154,15 @@ SECRET_KEY=your-secret-key-here
 ### ML/Audio Services
 - **VITS** - Neural text-to-speech for Indigenous languages
 - **Google Gemini 1.5 Flash** - Multimodal AI for pronunciation analysis
+- **Whisper AI** (Planned) - Conversational AI tutor for interactive dialogue
+- **Speech-to-Text** (Prototype) - Voice recognition for Indigenous languages
 - **Audio Processing** - WAV file generation and manipulation
+
+### Prototypes & Research
+- **Speech-to-Text Model** - Completed prototype for voice recognition
+  - Designed for Indigenous language phonetics
+  - Integration planned for future releases
+  - Enables conversational practice features
 
 ### DevOps & Tools
 - **Git** - Version control
@@ -238,7 +246,10 @@ TurtleTalk/
 - [ ] Offline mode with service workers
 
 ### 🔮 Future Enhancements
-- [ ] Additional Indigenous languages support
+- [ ] **Whisper AI Integration** - Conversational AI tutor with natural dialogue
+- [ ] **Speech-to-Text Model** - Real-time voice recognition (prototype completed)
+- [ ] **Interactive Voice Conversations** - Back-and-forth dialogue practice with AI tutor
+- [ ] Additional Indigenous languages support (Ojibwe, Mohawk, Inuktitut, etc.)
 - [ ] Mobile native apps (iOS/Android)
 - [ ] Live video sessions with native speakers
 - [ ] Gamification with leaderboards
@@ -279,6 +290,7 @@ Built with ❤️ for HackHive 2026
 - **Indigenous Language Elders** for their guidance and cultural knowledge
 - **HackHive 2026** for hosting the hackathon
 - **Google Gemini API** for AI pronunciation evaluation
+- **OpenAI Whisper** for speech recognition capabilities
 - **VITS Team** for the text-to-speech model
 - **Indigenous communities** for their support and feedback
 
