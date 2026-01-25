@@ -72,10 +72,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     setSubmitted(true);
     setShowFeedback(true);
 
-    // Auto-continue after delay
-    setTimeout(() => {
-      onComplete(score, xp);
-    }, correct ? 1500 : 3000);
+    // Don't auto-progress - let user click CONTINUE button
+    // This is more like Duolingo and gives time to read feedback
+  };
+
+  const handleContinue = () => {
+    onComplete(isCorrect ? 100 : 0, xpEarned);
   };
 
   const renderExerciseContent = () => {
@@ -341,6 +343,33 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             }}
           >
             {translate('common.check') || 'CHECK'}
+          </Button>
+        </Box>
+      )}
+
+      {/* Continue Button - Shows after feedback (Duolingo style) */}
+      {submitted && showFeedback && (
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleContinue}
+            sx={{
+              px: 8,
+              py: 2,
+              fontSize: '1.1rem',
+              background: isCorrect 
+                ? `linear-gradient(135deg, ${themeColors.success.main}, ${themeColors.success.light})`
+                : `linear-gradient(135deg, ${themeColors.primary.main}, ${themeColors.primary.light})`,
+              '&:hover': {
+                background: isCorrect
+                  ? `linear-gradient(135deg, ${themeColors.success.dark}, ${themeColors.success.main})`
+                  : `linear-gradient(135deg, ${themeColors.primary.dark}, ${themeColors.primary.main})`,
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
+            {translate('lesson.continue') || 'CONTINUE'}
           </Button>
         </Box>
       )}
