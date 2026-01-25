@@ -2,7 +2,9 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Tabs, Tab, Box, Avatar } from '@mui/material';
 import { Dashboard, Book, People, Settings } from '@mui/icons-material';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
 import { LanguageSwitcher } from '../Language/LanguageSwitcher';
+import { AccessibilitySettings } from './AccessibilitySettings';
 import { themeColors } from '../../theme/theme';
 
 interface MainNavigationProps {
@@ -12,6 +14,16 @@ interface MainNavigationProps {
 
 export const MainNavigation: React.FC<MainNavigationProps> = ({ currentTab, onTabChange }) => {
   const { translate } = useLanguage();
+  const { playClickSound, announceText } = useAccessibility();
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    playClickSound();
+    onTabChange(newValue);
+    
+    // Announce tab change for screen readers
+    const tabNames = ['Dashboard', 'Courses', 'Community', 'Settings'];
+    announceText(`Switched to ${tabNames[newValue]} tab`);
+  };
 
   return (
     <AppBar 
@@ -24,16 +36,16 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ currentTab, onTa
     >
       <Toolbar sx={{ px: { xs: 2, md: 3 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
-          <Avatar 
-            sx={{ 
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
-              mr: 1.5,
+          <Box
+            component="img"
+            src="/turtletalk-logo.png"
+            alt="TurtleTalk Logo"
+            sx={{
               width: 40,
-              height: 40
+              height: 40,
+              mr: 1.5,
             }}
-          >
-            🐢
-          </Avatar>
+          />
           <Typography 
             variant="h5" 
             component="div" 
@@ -60,7 +72,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ currentTab, onTa
         <Box sx={{ flexGrow: 1 }}>
           <Tabs
             value={currentTab}
-            onChange={(_, newValue) => onTabChange(newValue)}
+            onChange={handleTabChange}
             textColor="inherit"
             indicatorColor="secondary"
             sx={{
@@ -102,7 +114,8 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ currentTab, onTa
             />
           </Tabs>
         </Box>
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+          <AccessibilitySettings />
           <LanguageSwitcher />
         </Box>
       </Toolbar>

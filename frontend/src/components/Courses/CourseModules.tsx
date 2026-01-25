@@ -4,7 +4,7 @@ import { PlayArrow, CheckCircle, School } from '@mui/icons-material';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { CourseDetail } from './CourseDetail';
-import { Course } from '../../types/course';
+import { Course, Lesson } from '../../types/course';
 
 interface CourseModulesProps {
   courses?: Course[];
@@ -28,7 +28,122 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
         if (response.ok) {
           const data = await response.json();
           console.log('Courses fetched:', data);
-          setCourses(data);
+          
+          // Add our advanced sentence practice course
+          const advancedCourse = {
+            id: 'advanced-sentence-practice',
+            title: 'Advanced AI Sentence Practice',
+            description: 'Experience our cutting-edge VITS model with complex Cree sentences. Perfect for demonstrating advanced AI capabilities.',
+            language: 'cr',
+            level: 'advanced',
+            thumbnail: '/images/advanced-ai-course.png',
+            lessons: [
+              {
+                id: 'hackhive-love',
+                courseId: 'advanced-sentence-practice',
+                title: 'HackHive Expression',
+                description: 'Learn to express love and appreciation using modern technology terms',
+                order: 1,
+                type: 'pronunciation',
+                completed: true,
+                content: {
+                  text: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                  translation: 'We love HackHive',
+                  vocabulary: [
+                    {
+                      word: 'ᐊᐧᐸ᐀',
+                      translation: 'we',
+                      pronunciation: 'awapa',
+                      audioUrl: '/audio/awapa.wav'
+                    },
+                    {
+                      word: 'ᒪᓇᐦᑲ',
+                      translation: 'love/appreciate',
+                      pronunciation: 'manahka',
+                      audioUrl: '/audio/manahka.wav'
+                    }
+                  ],
+                  examples: [
+                    {
+                      text: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                      translation: 'We love HackHive',
+                      audioUrl: '/audio/cree_love_hackhive.wav'
+                    }
+                  ]
+                },
+                exercises: [
+                  {
+                    id: 'pronunciation-hackhive',
+                    type: 'pronunciation',
+                    question: 'Listen and repeat: "We love HackHive"',
+                    correctAnswer: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                    audioUrl: '/audio/cree_love_hackhive.wav',
+                    points: 50
+                  }
+                ],
+                audioUrl: '/audio/cree_love_hackhive.wav',
+                estimatedTime: 5
+              } as Lesson,
+              {
+                id: 'university-pride',
+                courseId: 'advanced-sentence-practice',
+                title: 'University Pride Expression',
+                description: 'Express school pride and competitive spirit in Cree',
+                order: 2,
+                type: 'pronunciation',
+                content: {
+                  text: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                  translation: 'Ontario Tech University in Oshawa is the best university, let us win this!',
+                  vocabulary: [
+                    {
+                      word: 'ᐅᐄ̊ᓀᐸᕁ',
+                      translation: 'Ontario',
+                      pronunciation: 'onitario',
+                      audioUrl: '/audio/ontario.wav'
+                    },
+                    {
+                      word: 'ᑮᓇᐨᑮ̄ᐃᐣ',
+                      translation: 'university/school',
+                      pronunciation: 'kinasikawin',
+                      audioUrl: '/audio/university.wav'
+                    },
+                    {
+                      word: 'ᐱᐞᒪ',
+                      translation: 'best/excellent',
+                      pronunciation: 'piyakwa',
+                      audioUrl: '/audio/best.wav'
+                    }
+                  ],
+                  examples: [
+                    {
+                      text: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                      translation: 'Ontario Tech University in Oshawa is the best university, let us win this!',
+                      audioUrl: '/audio/ontario_tech_cree.wav'
+                    }
+                  ]
+                },
+                exercises: [
+                  {
+                    id: 'pronunciation-university',
+                    type: 'pronunciation',
+                    question: 'Listen and repeat: University pride expression',
+                    correctAnswer: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                    audioUrl: '/audio/ontario_tech_cree.wav',
+                    points: 50
+                  }
+                ],
+                audioUrl: '/audio/ontario_tech_cree.wav',
+                estimatedTime: 5
+              } as Lesson
+            ],
+            progress: 0,
+            completed: false,
+            estimatedTime: 10,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          } as Course;
+          
+          setCourses([...data, advancedCourse]);
           setError('');
         } else {
           const errorText = await response.text();
@@ -47,6 +162,118 @@ export const CourseModules: React.FC<CourseModulesProps> = ({
             language: 'cr',
             level: 'beginner',
             lessons: [],
+          } as Course,
+          {
+            id: 'advanced-sentence-practice',
+            title: 'Advanced AI Sentence Practice',
+            description: 'Experience our cutting-edge VITS model with complex Cree sentences. Perfect for demonstrating advanced AI capabilities.',
+            language: 'cr',
+            level: 'advanced',
+            thumbnail: '/images/advanced-ai-course.png',
+            lessons: [
+              {
+                id: 'hackhive-love',
+                courseId: 'advanced-sentence-practice',
+                title: 'HackHive Expression',
+                description: 'Learn to express love and appreciation using modern technology terms',
+                order: 1,
+                type: 'pronunciation',
+                completed: true,
+                content: {
+                  text: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                  translation: 'We love HackHive',
+                  vocabulary: [
+                    {
+                      word: 'ᐊᐧᐸ᐀',
+                      translation: 'we',
+                      pronunciation: 'awapa',
+                      audioUrl: '/audio/awapa.wav'
+                    },
+                    {
+                      word: 'ᒪᓇᐦᑲ',
+                      translation: 'love/appreciate',
+                      pronunciation: 'manahka',
+                      audioUrl: '/audio/manahka.wav'
+                    }
+                  ],
+                  examples: [
+                    {
+                      text: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                      translation: 'We love HackHive',
+                      audioUrl: '/audio/cree_love_hackhive.wav'
+                    }
+                  ]
+                },
+                exercises: [
+                  {
+                    id: 'pronunciation-hackhive',
+                    type: 'pronunciation',
+                    question: 'Listen and repeat: "We love HackHive"',
+                    correctAnswer: 'ᐊᐧᐸ᐀ ᐊ̄ᐧᐸ᐀ᐆ ᒪᐧᐸ ᒪᓇᐦᑲ',
+                    audioUrl: '/audio/cree_love_hackhive.wav',
+                    points: 50
+                  }
+                ],
+                audioUrl: '/audio/cree_love_hackhive.wav',
+                estimatedTime: 5
+              } as Lesson,
+              {
+                id: 'university-pride',
+                courseId: 'advanced-sentence-practice',
+                title: 'University Pride Expression',
+                description: 'Express school pride and competitive spirit in Cree',
+                order: 2,
+                type: 'pronunciation',
+                content: {
+                  text: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                  translation: 'Ontario Tech University in Oshawa is the best university, let us win this!',
+                  vocabulary: [
+                    {
+                      word: 'ᐅᐄ̊ᓀᐸᕁ',
+                      translation: 'Ontario',
+                      pronunciation: 'onitario',
+                      audioUrl: '/audio/ontario.wav'
+                    },
+                    {
+                      word: 'ᑮᓇᐨᑮ̄ᐃᐣ',
+                      translation: 'university/school',
+                      pronunciation: 'kinasikawin',
+                      audioUrl: '/audio/university.wav'
+                    },
+                    {
+                      word: 'ᐱᐞᒪ',
+                      translation: 'best/excellent',
+                      pronunciation: 'piyakwa',
+                      audioUrl: '/audio/best.wav'
+                    }
+                  ],
+                  examples: [
+                    {
+                      text: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                      translation: 'Ontario Tech University in Oshawa is the best university, let us win this!',
+                      audioUrl: '/audio/ontario_tech_cree.wav'
+                    }
+                  ]
+                },
+                exercises: [
+                  {
+                    id: 'pronunciation-university',
+                    type: 'pronunciation',
+                    question: 'Listen and repeat: University pride expression',
+                    correctAnswer: 'ᐅᐄ̊ᓀᐸᕁ ᑮᓇᐨᑮ̄ᐃᐣ ᐊ̄ᑐ̵ᕁ ᐱᐞᒪ ᑮᓇᐨᑮ̄ᐃᐣ',
+                    audioUrl: '/audio/ontario_tech_cree.wav',
+                    points: 50
+                  }
+                ],
+                audioUrl: '/audio/ontario_tech_cree.wav',
+                estimatedTime: 5
+              } as Lesson
+            ],
+            progress: 0,
+            completed: false,
+            estimatedTime: 10,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           } as Course
         ]);
       } finally {

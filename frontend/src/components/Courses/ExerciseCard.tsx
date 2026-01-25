@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -41,6 +41,60 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const [showFeedback, setShowFeedback] = useState(false);
   const [xpEarned, setXpEarned] = useState(0);
 
+  // Sound feedback function
+  const playAnswerSound = (correct: boolean) => {
+    try {
+      // Use Web Audio API to create proper UI click sounds
+      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      
+      const audioContext = new AudioCtx();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (correct) {
+        // Success sound: Pleasant ascending chime
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1); // E5
+        oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2); // G5
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+      } else {
+        // Error sound: Gentle "buzz" tone
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // A3
+        oscillator.frequency.setValueAtTime(196, audioContext.currentTime + 0.15); // G3
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      }
+    } catch (error) {
+      console.log('Could not play sound feedback:', error);
+    }
+  };
+
+  // Reset state when exercise changes
+  useEffect(() => {
+    setAnswer('');
+    setSubmitted(false);
+    setIsCorrect(false);
+    setShowFeedback(false);
+    setXpEarned(0);
+  }, [exercise.id, exerciseNumber]);
+
   const handleSubmit = () => {
     if (!answer) return;
 
@@ -50,22 +104,35 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     // Check answer based on exercise type
     if (exercise.type === 'multiple-choice') {
       // For multiple choice, check if selected option ID matches correct answer
-      correct = answer === exercise.correctAnswer;
+      const selectedOptionId = answer.trim();
+      // Handle both camelCase and snake_case from backend
+      const correctOptionId = exercise.correctAnswer || (exercise as any).correct_answer || '';
+      
+      correct = selectedOptionId === correctOptionId;
       score = correct ? 100 : 0;
+      
+      console.log('Multiple choice check:', { selectedOptionId, correctOptionId, correct });
     } else {
       // For text-based answers (fill-blank, translation)
       const userAnswer = answer.trim().toLowerCase();
-      const correctAnswer = typeof exercise.correctAnswer === 'string' 
-        ? exercise.correctAnswer.trim().toLowerCase()
-        : Array.isArray(exercise.correctAnswer) && exercise.correctAnswer.length > 0
-        ? exercise.correctAnswer[0].trim().toLowerCase()
+      // Handle both camelCase and snake_case from backend
+      const backendAnswer = exercise.correctAnswer || (exercise as any).correct_answer;
+      const correctAnswer = typeof backendAnswer === 'string' 
+        ? backendAnswer.trim().toLowerCase()
+        : Array.isArray(backendAnswer) && backendAnswer.length > 0
+        ? backendAnswer[0].trim().toLowerCase()
         : '';
       
       correct = userAnswer === correctAnswer;
       score = correct ? 100 : 0;
+      
+      console.log('Text answer check:', { userAnswer, correctAnswer, correct });
     }
     
     const xp = correct ? (exercise.points || 10) : 0;
+
+    // Play sound feedback
+    playAnswerSound(correct);
 
     setIsCorrect(correct);
     setXpEarned(xp);
@@ -111,23 +178,27 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
               onChange={(e) => setAnswer(e.target.value)}
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {(exercise.options || []).map((option) => (
+                {(exercise.options || []).map((option) => {
+                  // Handle both camelCase and snake_case from backend
+                  const optionIsCorrect = option.isCorrect || (option as any).is_correct || false;
+                  
+                  return (
                   <Card
                     key={option.id}
                     sx={{
                       cursor: 'pointer',
                       border: `3px solid ${
-                        submitted && option.isCorrect
+                        submitted && optionIsCorrect
                           ? themeColors.success.main
-                          : submitted && answer === option.id && !option.isCorrect
+                          : submitted && answer === option.id && !optionIsCorrect
                           ? themeColors.error.main
                           : answer === option.id
                           ? themeColors.primary.main
                           : themeColors.background.subtle
                       }`,
-                      bgcolor: submitted && option.isCorrect
+                      bgcolor: submitted && optionIsCorrect
                         ? `${themeColors.success.main}15`
-                        : submitted && answer === option.id && !option.isCorrect
+                        : submitted && answer === option.id && !optionIsCorrect
                         ? `${themeColors.error.main}15`
                         : 'white',
                       transform: answer === option.id ? 'scale(1.02)' : 'scale(1)',
@@ -157,7 +228,8 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
                       sx={{ m: 0, width: '100%' }}
                     />
                   </Card>
-                ))}
+                  );
+                })}
               </Box>
             </RadioGroup>
           </Box>

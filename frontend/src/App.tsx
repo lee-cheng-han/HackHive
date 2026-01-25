@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { theme } from './theme/theme';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { MainNavigation } from './components/Navigation/MainNavigation';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { CourseModules } from './components/Courses/CourseModules';
@@ -50,7 +51,7 @@ function App() {
       case 1:
         return <CourseModules />;
       case 2:
-        return <CommunityHub stories={[mockStory]} />;
+        return <CommunityHub />;
       case 3:
         return <Settings />;
       default:
@@ -60,15 +61,17 @@ function App() {
 
   return (
     <LanguageProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <MainNavigation currentTab={currentTab} onTabChange={setCurrentTab} />
-          <Box sx={{ flexGrow: 1 }}>
-            {renderContent()}
+      <AccessibilityProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <MainNavigation currentTab={currentTab} onTabChange={setCurrentTab} />
+            <Box sx={{ flexGrow: 1 }}>
+              {renderContent()}
+            </Box>
           </Box>
-        </Box>
-      </ThemeProvider>
+        </ThemeProvider>
+      </AccessibilityProvider>
     </LanguageProvider>
   );
 }

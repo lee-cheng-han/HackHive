@@ -173,8 +173,13 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
       <Container maxWidth="md" sx={{ mt: 4 }}>
         {currentExercise.type === 'pronunciation' ? (
           <PronunciationExercise
-            targetText={currentExercise.question.replace('Practice pronunciation: Say ', '').replace('Say: ', '').split(' (')[0]}
+            targetText={
+              Array.isArray(currentExercise.correctAnswer) 
+                ? currentExercise.correctAnswer[0] 
+                : currentExercise.correctAnswer || currentExercise.question
+            }
             targetTranslation={currentExercise.questionTranslation}
+            audioUrl={currentExercise.audioUrl}
             onComplete={(score) => handleExerciseComplete(score, currentExercise.points || 20)}
             enableCamera={true}
           />

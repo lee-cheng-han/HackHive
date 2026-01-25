@@ -17,6 +17,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 interface PronunciationExerciseProps {
   targetText: string;
   targetTranslation?: string;
+  audioUrl?: string;
   onComplete: (score: number) => void;
   enableCamera?: boolean;
 }
@@ -24,6 +25,7 @@ interface PronunciationExerciseProps {
 export const PronunciationExercise: React.FC<PronunciationExerciseProps> = ({
   targetText,
   targetTranslation,
+  audioUrl,
   onComplete,
   enableCamera = false,
 }) => {
@@ -37,6 +39,61 @@ export const PronunciationExercise: React.FC<PronunciationExerciseProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  // Pronunciation sound feedback
+  const playPronunciationSound = (score: number) => {
+    try {
+      // Use Web Audio API to create UI feedback sounds
+      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      
+      const audioContext = new AudioCtx();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (score >= 85) {
+        // Excellent: Success chime
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1); // E5
+        oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2); // G5
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } else if (score >= 70) {
+        // Good: Single pleasant tone
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else {
+        // Try again: Gentle notification sound
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(330, audioContext.currentTime); // E4
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+      }
+    } catch (error) {
+      console.log('Could not play pronunciation feedback sound:', error);
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -99,42 +156,143 @@ export const PronunciationExercise: React.FC<PronunciationExerciseProps> = ({
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      formData.append('file', audioBlob, 'pronunciation.wav');
+      formData.append('audio', audioBlob, 'pronunciation.wav');
       formData.append('target_text', targetText);
-      formData.append('language_code', 'cr');
+      formData.append('target_translation', targetTranslation || '');
 
-      // TODO: Call backend API
-      // For now, mock response
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call real backend API with Gemini evaluation
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/v1/ai-tutor/evaluate-pronunciation', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const result = await response.json();
       
-      const mockScore = Math.floor(Math.random() * 30) + 70; // 70-100
-      const mockFeedback = mockScore >= 85 
-        ? translate('pronunciation.excellent') || 'Excellent pronunciation!' 
-        : mockScore >= 70 
-        ? translate('pronunciation.good') || 'Good! Keep practicing.'
-        : translate('pronunciation.tryAgain') || 'Try again, focus on the vowel sounds.';
+      // Display AI-powered results
+      setScore(result.score);
       
-      setScore(mockScore);
-      setFeedback(mockFeedback);
+      // Combine feedback with specific tips
+      let fullFeedback = result.feedback;
+      if (result.specific_tips && result.specific_tips.length > 0) {
+        fullFeedback += '\n\nTips:\n' + result.specific_tips.map((tip: string) => `• ${tip}`).join('\n');
+      }
+      if (result.cultural_note) {
+        fullFeedback += `\n\n💡 ${result.cultural_note}`;
+      }
+      setFeedback(fullFeedback);
       
+      // Play sound feedback for pronunciation
+      playPronunciationSound(result.score);
+      
+      // Wait longer before completing to let user read feedback
       setTimeout(() => {
-        onComplete(mockScore);
-      }, 2000);
+        onComplete(result.score);
+      }, 4000); // Increased from 2500 to 4000ms (4 seconds)
     } catch (error) {
       console.error('Error evaluating pronunciation:', error);
-      setFeedback('Error processing audio');
+      setFeedback('Error processing audio. Please try again.');
+      
+      // Fallback to mock if API fails
+      const mockScore = 75;
+      setScore(mockScore);
+      playPronunciationSound(mockScore);
+      
+      // Wait longer before completing
+      setTimeout(() => {
+        onComplete(mockScore);
+      }, 4000); // Increased from 2000 to 4000ms
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const playReferenceAudio = () => {
-    // TODO: Play reference audio
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(targetText);
-      utterance.lang = 'cr'; // Cree language code
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
+  const playReferenceAudio = async () => {
+    try {
+      // If audioUrl is provided, play that audio file directly
+      if (audioUrl) {
+        console.log(`🔊 Playing audio from file: ${audioUrl}`);
+        
+        // Create absolute URL from relative path
+        const fullAudioUrl = audioUrl.startsWith('http') 
+          ? audioUrl 
+          : `${window.location.origin}${audioUrl}`;
+        
+        console.log(`📍 Full audio URL: ${fullAudioUrl}`);
+        
+        const audio = new Audio(fullAudioUrl);
+        audio.volume = 0.8;
+        
+        // Try to play and handle any errors
+        try {
+          await audio.play();
+          console.log('✅ Audio played successfully');
+        } catch (playError) {
+          console.error('❌ Error playing audio file:', playError);
+          // If autoplay is blocked, show a message
+          alert('Please click the speaker button again to hear the pronunciation.');
+        }
+        return;
+      }
+
+      // Fallback to speech synthesis - Map common Cree words to proper pronunciation guides
+      const creepronunciationMap: { [key: string]: string } = {
+        'tânisi': 'TAH nee see',
+        'tanisi': 'TAH nee see', 
+        'Tânisi': 'TAH nee see',
+        'Tanisi': 'TAH nee see',
+        'nēwo': 'NAY woh',
+        'newo': 'NAY woh',
+        'nīso': 'NEE soh',
+        'niso': 'NEE soh',
+        'pēyak': 'PAY ahk',
+        'peyak': 'PAY ahk',
+        'nikāwīy': 'nee KAH wee',
+        'nikawiy': 'nee KAH wee',
+        'kinanāskomitin': 'kee nah NAS koh mee teen',
+        'kinanaskomitin': 'kee nah NAS koh mee teen',
+        'ēkosi': 'AY koh see',
+        'ekosi': 'AY koh see'
+      };
+
+      // Get phonetic pronunciation for Cree words
+      const phoneticText = creepronunciationMap[targetText.toLowerCase()] || targetText;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(phoneticText);
+        
+        // Configure for better pronunciation
+        utterance.lang = 'en-US'; // Use English but with our phonetic spelling
+        utterance.rate = 0.5; // Very slow for learning
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
+        
+        // Try to find a voice that works well for phonetic pronunciation
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && 
+          (voice.name.includes('Alex') || voice.name.includes('Karen') || voice.name.includes('Daniel'))
+        );
+        
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+        
+        console.log(`🔊 Playing Cree pronunciation: "${targetText}" → "${phoneticText}"`);
+        window.speechSynthesis.speak(utterance);
+        return;
+      }
+      
+      console.log('Speech synthesis not available, no audio played');
+    } catch (error) {
+      console.error('Error playing audio:', error);
     }
   };
 

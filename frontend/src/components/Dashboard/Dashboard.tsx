@@ -144,10 +144,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <AutoStories sx={{ color: themeColors.accent.turquoise, fontSize: 32 }} />
                       <Box flex={1}>
                         <Typography variant="subtitle1" fontWeight={600}>
-                          ᐋᒋᒧᐤ - The Morning Song
+                          ᑕᐃᐧᓇ - ᑮᐢᑳᐤ ᓂᑲᒧᐣ
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Beginner · 5 min · Cree
+                          ᓇᑲᒧᐣ · 5 ᐊᓱᓀᐤ · ᓀᐦᐃᔭᐍᐧᐃᐣ
                         </Typography>
                       </Box>
                     </Box>
@@ -168,10 +168,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <Whatshot sx={{ color: themeColors.accent.coral, fontSize: 32 }} />
                       <Box flex={1}>
                         <Typography variant="subtitle1" fontWeight={600}>
-                          ᓂᑐᓇᐍᐤ - Family Vocabulary
+                          ᓂᑐᓇᐍᐤ - ᐚᐢᑲᐦᐃᑲᐣ ᐊᔮᐦᑵᒣᐤ
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Beginner · 15 min · Practice
+                          ᓇᑲᒧᐣ · 15 ᐊᓱᓀᐤ · ᐸᐱᒋ ᑭᐢᑭᓀᐤ
                         </Typography>
                       </Box>
                       <Chip 
@@ -236,7 +236,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {/* Mini achievement badges */}
               <Box sx={{ mt: 3, pt: 2, borderTop: `1px dashed ${themeColors.background.subtle}` }}>
                 <Typography variant="caption" color="text.secondary" gutterBottom display="block">
-                  Recent achievements
+                  ᐅᐢᑫᔦᐃᐧ ᐚᐱᑎᓯᐤ
                 </Typography>
                 <Box display="flex" gap={1} mt={1}>
                   <Box 

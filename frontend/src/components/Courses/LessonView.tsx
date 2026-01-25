@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   IconButton,
-  LinearProgress,
   Chip,
 } from '@mui/material';
 import {
@@ -27,7 +26,7 @@ import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { TranslationDisplay } from '../Language/TranslationDisplay';
 import { AudioPlayer } from '../Audio/AudioPlayer';
-import { QuizComponent } from './QuizComponent';
+import { CreeAudioPlayer } from '../Audio/CreeAudioPlayer';
 import { PronunciationCoach } from './PronunciationCoach';
 import { InteractiveLessonFlow } from './InteractiveLessonFlow';
 import { LessonComplete } from './LessonComplete';
@@ -42,7 +41,7 @@ interface LessonViewProps {
   hasPrevious: boolean;
 }
 
-type LessonStep = 'content' | 'vocabulary' | 'grammar' | 'practice' | 'quiz';
+type LessonStep = 'content' | 'vocabulary' | 'grammar' | 'practice';
 
 export const LessonView: React.FC<LessonViewProps> = ({
   lesson,
@@ -65,7 +64,6 @@ export const LessonView: React.FC<LessonViewProps> = ({
     { key: 'vocabulary', label: translate('lesson.step.vocabulary') || 'Vocabulary' },
     { key: 'grammar', label: translate('lesson.step.grammar') || 'Grammar' },
     { key: 'practice', label: translate('lesson.step.practice') || 'Practice' },
-    { key: 'quiz', label: translate('lesson.step.quiz') || 'Quiz' },
   ];
 
   const currentStepIndex = steps.findIndex(s => s.key === currentStep);
@@ -82,12 +80,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
     setExerciseScores(prev => ({ ...prev, [exerciseId]: score }));
     if (score >= 70) {
       handleStepComplete('practice');
-    }
-  };
-
-  const handleQuizComplete = (score: number) => {
-    if (score >= 70) {
-      handleStepComplete('quiz');
+      // Complete the lesson when practice is done
       onComplete(lesson.id);
     }
   };
@@ -117,13 +110,6 @@ export const LessonView: React.FC<LessonViewProps> = ({
             onExerciseComplete={handleExerciseComplete}
             lesson={lesson}
             onShowInteractive={() => setShowInteractiveFlow(true)}
-          />
-        );
-      case 'quiz':
-        return (
-          <QuizStep
-            exercises={lesson.exercises}
-            onComplete={handleQuizComplete}
           />
         );
       default:
@@ -162,7 +148,7 @@ export const LessonView: React.FC<LessonViewProps> = ({
         streak={lessonResults.correctAnswers}
         onContinue={() => {
           setLessonResults(null);
-          setCurrentStep('quiz');
+          onComplete(lesson.id); // Complete lesson instead of going to quiz
         }}
         onReview={() => {
           setLessonResults(null);
@@ -261,16 +247,6 @@ export const LessonView: React.FC<LessonViewProps> = ({
         </Button>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {allStepsComplete && (
-            <Button
-              variant="contained"
-              color="success"
-              endIcon={<CheckCircle />}
-              onClick={() => onComplete(lesson.id)}
-            >
-              {translate('lesson.complete') || 'Complete Lesson'}
-            </Button>
-          )}
           {currentStepIndex < steps.length - 1 ? (
             <Button
               variant="contained"
@@ -282,13 +258,22 @@ export const LessonView: React.FC<LessonViewProps> = ({
             >
               {translate('common.next')}
             </Button>
-          ) : (
-            hasNext && (
+          ) : allStepsComplete ? (
+            hasNext ? (
               <Button variant="contained" endIcon={<ArrowForward />} onClick={onNext}>
                 {translate('lesson.nextLesson') || 'Next Lesson'}
               </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="success"
+                endIcon={<CheckCircle />}
+                onClick={() => onComplete(lesson.id)}
+              >
+                {translate('lesson.complete') || 'Complete Lesson'}
+              </Button>
             )
-          )}
+          ) : null}
         </Box>
       </Paper>
     </Container>
@@ -329,11 +314,13 @@ const ContentStep: React.FC<{ lesson: Lesson; onComplete: () => void }> = ({
         />
       </Box>
 
-      {lesson.audioUrl && (
-        <Box sx={{ mb: 3 }}>
-          <AudioPlayer src={lesson.audioUrl} autoPlay={false} />
-        </Box>
-      )}
+      {/* Audio player for the main lesson content */}
+      <Box sx={{ mb: 3 }}>
+        <CreeAudioPlayer 
+          text={lesson.content.text}
+          translation={lesson.content.translation}
+        />
+      </Box>
 
       {lesson.content.examples && lesson.content.examples.length > 0 && (
         <Box sx={{ mt: 3 }}>
@@ -349,22 +336,17 @@ const ContentStep: React.FC<{ lesson: Lesson; onComplete: () => void }> = ({
                   language={lesson.courseId ? lesson.courseId.split('-')[0] : 'cr'}
                   showTranslation={true}
                 />
-                {example.audioUrl && (
-                  <Box sx={{ mt: 1 }}>
-                    <AudioPlayer src={example.audioUrl} autoPlay={false} />
-                  </Box>
-                )}
+                <Box sx={{ mt: 1 }}>
+                  <CreeAudioPlayer 
+                    text={example.text}
+                    translation={example.translation}
+                  />
+                </Box>
               </CardContent>
             </Card>
           ))}
         </Box>
       )}
-
-      <Box sx={{ mt: 3, textAlign: 'right' }}>
-        <Button variant="contained" onClick={onComplete}>
-          {translate('common.next')}
-        </Button>
-      </Box>
     </Paper>
   );
 };
@@ -433,11 +415,6 @@ const VocabularyStep: React.FC<{
           </Card>
         ))}
       </Box>
-      <Box sx={{ mt: 3, textAlign: 'right' }}>
-        <Button variant="contained" onClick={onComplete}>
-          {translate('common.next')}
-        </Button>
-      </Box>
     </Paper>
   );
 };
@@ -476,11 +453,6 @@ const GrammarStep: React.FC<{
           </CardContent>
         </Card>
       ))}
-      <Box sx={{ mt: 3, textAlign: 'right' }}>
-        <Button variant="contained" onClick={onComplete}>
-          {translate('common.next')}
-        </Button>
-      </Box>
     </Paper>
   );
 };
@@ -522,60 +494,3 @@ const PracticeStep: React.FC<{
     </Paper>
   );
 };
-
-// Quiz Step Component
-const QuizStep: React.FC<{
-  exercises: Lesson['exercises'];
-  onComplete: (score: number) => void;
-}> = ({ exercises, onComplete }) => {
-  const { translate } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [scores, setScores] = useState<number[]>([]);
-  const currentExercise = exercises[currentIndex];
-
-  const handleExerciseComplete = (score: number) => {
-    setScores(prev => [...prev, score]);
-    if (currentIndex < exercises.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      const averageScore = scores.reduce((a, b) => a + b, score) / (scores.length + 1);
-      onComplete(averageScore);
-    }
-  };
-
-  if (!currentExercise) {
-    const finalScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-    return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          {translate('lesson.quizComplete') || 'Quiz Complete!'}
-        </Typography>
-        <Typography variant="h5" sx={{ color: themeColors.primary.main, my: 2 }}>
-          {Math.round(finalScore)}%
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {finalScore >= 70
-            ? translate('lesson.quizPassed') || 'Great job! You passed!'
-            : translate('lesson.quizRetry') || 'Keep practicing! You can retry.'}
-        </Typography>
-      </Paper>
-    );
-  }
-
-  return (
-    <Box>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          {translate('lesson.quiz') || 'Quiz'} {currentIndex + 1} / {exercises.length}
-        </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={((currentIndex + 1) / exercises.length) * 100}
-          sx={{ mt: 1, height: 8, borderRadius: 4 }}
-        />
-      </Box>
-      <QuizComponent exercise={currentExercise} onComplete={handleExerciseComplete} />
-    </Box>
-  );
-};
-
