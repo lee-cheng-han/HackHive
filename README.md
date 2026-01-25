@@ -20,7 +20,7 @@
 
 ## 📖 About
 
-TurtleTalk is an innovative AI-powered platform designed to preserve and teach Indigenous languages, with a focus on Cree language education. The platform combines modern technology with cultural sensitivity to create an engaging, accessible learning experience through:
+TurtleTalk is an innovative AI-powered platform designed to preserve and teach Indigenous languages across North America. The platform combines modern technology with cultural sensitivity to create an engaging, accessible learning experience through:
 
 - 🎯 **Interactive Duolingo-style exercises** with real-time feedback
 - 🎤 **AI-powered pronunciation evaluation** using Google Gemini
@@ -29,7 +29,7 @@ TurtleTalk is an innovative AI-powered platform designed to preserve and teach I
 - 🌐 **Community-driven content** and cultural storytelling
 - ♿ **Accessibility-first design** with screen reader support
 
-Built for the **Ontario Tech Hackathon 2026**, TurtleTalk demonstrates how technology can support Indigenous language revitalization while respecting cultural context and community needs.
+Built for **HackHive 2026**, TurtleTalk demonstrates how technology can support Indigenous language revitalization while respecting cultural context and community needs. Currently showcasing Cree language education with plans to expand to additional Indigenous languages.
 
 ## ✨ Features
 
@@ -37,13 +37,13 @@ Built for the **Ontario Tech Hackathon 2026**, TurtleTalk demonstrates how techn
 - **Progressive Course System**: Structured lessons from beginner to advanced levels
 - **Interactive Exercises**: Multiple choice, translation, pronunciation, and listening comprehension
 - **Real-time Pronunciation Feedback**: AI analyzes your pronunciation and provides specific improvement tips
-- **Audio-First Learning**: High-quality Cree audio recordings for authentic pronunciation
-- **Cultural Context**: Stories and examples rooted in Indigenous culture
+- **Audio-First Learning**: High-quality Indigenous language audio recordings for authentic pronunciation
+- **Cultural Context**: Stories and examples rooted in Indigenous cultures
 
 ### 🤖 AI Integration
 - **Gemini API Pronunciation Analysis**: Advanced AI evaluates pronunciation accuracy (0-100 score)
 - **Personalized Feedback**: Specific tips on pronunciation, intonation, and cultural nuances
-- **VITS Text-to-Speech**: Neural network generates natural-sounding Cree speech
+- **VITS Text-to-Speech**: Neural network generates natural-sounding Indigenous language speech
 - **Smart Progress Tracking**: Adaptive learning based on user performance
 
 ### 🌍 Community Features
@@ -63,7 +63,7 @@ Built for the **Ontario Tech Hackathon 2026**, TurtleTalk demonstrates how techn
 ## 🎬 Demo
 
 ### Pronunciation Exercise
-Students record themselves speaking Cree phrases and receive instant AI feedback:
+Students record themselves speaking Indigenous language phrases and receive instant AI feedback:
 - **Score**: 0-100 pronunciation accuracy
 - **Feedback**: Detailed analysis of strengths and areas for improvement
 - **Tips**: Specific guidance on proper pronunciation techniques
@@ -152,7 +152,7 @@ SECRET_KEY=your-secret-key-here
 - **Pydantic** - Data validation
 
 ### ML/Audio Services
-- **VITS** - Neural text-to-speech for Cree language
+- **VITS** - Neural text-to-speech for Indigenous languages
 - **Google Gemini 1.5 Flash** - Multimodal AI for pronunciation analysis
 - **Audio Processing** - WAV file generation and manipulation
 
@@ -189,7 +189,7 @@ SECRET_KEY=your-secret-key-here
 TurtleTalk/
 ├── frontend/              # React TypeScript application
 │   ├── public/
-│   │   ├── audio/        # Cree audio files (VITS-generated)
+│   │   ├── audio/        # Indigenous language audio files (VITS-generated)
 │   │   └── images/       # Assets and course thumbnails
 │   └── src/
 │       ├── components/   # React components
@@ -223,7 +223,7 @@ TurtleTalk/
 - [x] AI pronunciation evaluation with Gemini API
 - [x] Audio recording and playback
 - [x] Real-time feedback with 4-second display
-- [x] VITS text-to-speech for Cree language
+- [x] VITS text-to-speech for Indigenous languages
 - [x] Community forums and discussion spaces
 - [x] Cultural storytelling section
 - [x] Accessibility features (screen reader, keyboard nav)
@@ -268,7 +268,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Team
 
-Built with ❤️ for the Ontario Tech Hackathon 2026
+Built with ❤️ for HackHive 2026
 
 - **Project Lead & Full Stack Development**
 - **AI/ML Integration**
@@ -276,8 +276,8 @@ Built with ❤️ for the Ontario Tech Hackathon 2026
 
 ## 🙏 Acknowledgments
 
-- **Cree Language Elders** for their guidance and cultural knowledge
-- **Ontario Tech University** for hosting the hackathon
+- **Indigenous Language Elders** for their guidance and cultural knowledge
+- **HackHive 2026** for hosting the hackathon
 - **Google Gemini API** for AI pronunciation evaluation
 - **VITS Team** for the text-to-speech model
 - **Indigenous communities** for their support and feedback
