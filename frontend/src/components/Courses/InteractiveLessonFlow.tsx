@@ -21,6 +21,7 @@ import { Lesson, Exercise } from '../../types/course';
 import { themeColors } from '../../theme/theme';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ExerciseCard } from './ExerciseCard';
+import { PronunciationExercise } from './PronunciationExercise';
 import { DecorativeBorder, GradientText } from '../Common';
 
 interface InteractiveLessonFlowProps {
@@ -73,6 +74,8 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
   const totalExercises = exercises.length;
 
   const handleExerciseComplete = (score: number, xpEarned: number) => {
+    console.log('Exercise complete:', { score, xpEarned, currentIndex: currentExerciseIndex, isLast: isLastExercise });
+    
     setExerciseScores(prev => [...prev, score]);
     setTotalXP(prev => prev + xpEarned);
 
@@ -85,6 +88,7 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
 
     if (isLastExercise) {
       // Lesson complete!
+      console.log('Last exercise - showing celebration');
       setShowCelebration(true);
       setTimeout(() => {
         const results: LessonResults = {
@@ -99,9 +103,8 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
       }, 3000);
     } else {
       // Next exercise
-      setTimeout(() => {
-        setCurrentExerciseIndex(prev => prev + 1);
-      }, 1000);
+      console.log('Moving to next exercise');
+      setCurrentExerciseIndex(prev => prev + 1);
     }
   };
 
@@ -168,12 +171,21 @@ export const InteractiveLessonFlow: React.FC<InteractiveLessonFlowProps> = ({
 
       {/* Exercise Content */}
       <Container maxWidth="md" sx={{ mt: 4 }}>
-        <ExerciseCard
-          exercise={currentExercise}
-          exerciseNumber={currentExerciseIndex + 1}
-          totalExercises={totalExercises}
-          onComplete={handleExerciseComplete}
-        />
+        {currentExercise.type === 'pronunciation' ? (
+          <PronunciationExercise
+            targetText={currentExercise.question.replace('Practice pronunciation: Say ', '').replace('Say: ', '').split(' (')[0]}
+            targetTranslation={currentExercise.questionTranslation}
+            onComplete={(score) => handleExerciseComplete(score, currentExercise.points || 20)}
+            enableCamera={true}
+          />
+        ) : (
+          <ExerciseCard
+            exercise={currentExercise}
+            exerciseNumber={currentExerciseIndex + 1}
+            totalExercises={totalExercises}
+            onComplete={handleExerciseComplete}
+          />
+        )}
       </Container>
 
       {/* Celebration Dialog */}

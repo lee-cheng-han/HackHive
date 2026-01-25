@@ -77,7 +77,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   };
 
   const handleContinue = () => {
-    onComplete(isCorrect ? 100 : 0, xpEarned);
+    const score = isCorrect ? 100 : 0;
+    console.log('Continuing to next exercise...', { score, xpEarned });
+    onComplete(score, xpEarned);
   };
 
   const renderExerciseContent = () => {
