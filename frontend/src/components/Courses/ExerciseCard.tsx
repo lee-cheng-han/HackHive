@@ -44,14 +44,27 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const handleSubmit = () => {
     if (!answer) return;
 
-    // Check answer
-    const userAnswer = answer.trim().toLowerCase();
-    const correctAnswer = typeof exercise.correctAnswer === 'string' 
-      ? exercise.correctAnswer.trim().toLowerCase()
-      : exercise.correctAnswer[0].trim().toLowerCase();
+    let correct = false;
+    let score = 0;
+
+    // Check answer based on exercise type
+    if (exercise.type === 'multiple-choice') {
+      // For multiple choice, check if selected option ID matches correct answer
+      correct = answer === exercise.correctAnswer;
+      score = correct ? 100 : 0;
+    } else {
+      // For text-based answers (fill-blank, translation)
+      const userAnswer = answer.trim().toLowerCase();
+      const correctAnswer = typeof exercise.correctAnswer === 'string' 
+        ? exercise.correctAnswer.trim().toLowerCase()
+        : Array.isArray(exercise.correctAnswer) && exercise.correctAnswer.length > 0
+        ? exercise.correctAnswer[0].trim().toLowerCase()
+        : '';
+      
+      correct = userAnswer === correctAnswer;
+      score = correct ? 100 : 0;
+    }
     
-    const correct = userAnswer === correctAnswer;
-    const score = correct ? 100 : 0;
     const xp = correct ? (exercise.points || 10) : 0;
 
     setIsCorrect(correct);
