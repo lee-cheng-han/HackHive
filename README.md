@@ -172,24 +172,20 @@ SECRET_KEY=your-secret-key-here
 
 ## 📚 Documentation
 
-### Core Documentation
-- **[SETUP.md](./SETUP.md)** - Complete development environment setup
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design and component interactions
-- **[TECHNICAL_SPEC.md](./TECHNICAL_SPEC.md)** - API contracts and data formats
-
-### Developer Guides
-- **[FRONTEND_PLAN.md](./FRONTEND_PLAN.md)** - Frontend development roadmap
-- **[BACKEND_PLAN.md](./BACKEND_PLAN.md)** - Backend development roadmap
-- **[ML_PLAN.md](./ML_PLAN.md)** - ML/AI development roadmap
-
-### Testing & Integration
-- **[INTEGRATION_TESTING.md](./INTEGRATION_TESTING.md)** - Comprehensive integration tests
-- **[QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md)** - Quick testing reference
-- **[BACKEND_TESTING_QUICKSTART.md](./BACKEND_TESTING_QUICKSTART.md)** - Backend testing guide
-
-### Community & Demo
+### Setup & Getting Started
+- **[SETUP.md](./SETUP.md)** - Development environment setup guide
 - **[COMMUNITY_DEMO_GUIDE.md](./COMMUNITY_DEMO_GUIDE.md)** - Hackathon demo instructions
-- **[TURTLETALK_PRD.md](./TURTLETALK_PRD.md)** - Product requirements document
+
+### Technical Documentation
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design and architecture
+- **[TECHNICAL_SPEC.md](./TECHNICAL_SPEC.md)** - API contracts and specifications
+
+### Cree Language Resources
+Our platform leverages these valuable Cree language resources for learning content and model training:
+
+- **[itwêwina Dictionary](https://itwewina.altlab.app/search?q=best)** - Comprehensive Plains Cree dictionary with audio pronunciations
+- **[Indigenous Languages Corpora](https://github.com/EdTeKLA/IndigenousLanguages_Corpora)** - Text corpora for Indigenous language processing
+- **[Cree Language Podcast](https://www.podbean.com/podcast-detail/9ybsw-8fa93/Cree-Language-of-the-Plains-Podcast)** - Plains Cree language learning podcast
 
 ## 🏗 Project Structure
 
