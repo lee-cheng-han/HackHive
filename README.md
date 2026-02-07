@@ -290,11 +290,6 @@ Built with ❤️ for HackHive 2026
 - **VITS Team** for the text-to-speech model
 - **Indigenous communities** for their support and feedback
 
-## 📞 Contact
-
-- **GitHub**: [@Mayalevich](https://github.com/Mayalevich)
-- **Project Repository**: [TurtleTalk](https://github.com/Mayalevich/TurtleTalk)
-- **Issues**: [Report a Bug](https://github.com/Mayalevich/TurtleTalk/issues)
 
 ---
 
